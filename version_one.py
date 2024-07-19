@@ -78,7 +78,6 @@ class User:
 
 def user_login():
     '''Get the user's information'''
-    global u
 
     user_entered_valid_name = False
     user_entered_valid_email = False
@@ -99,7 +98,7 @@ def user_login():
         else:
             user_entered_valid_email = True
 
-    u = User(user_name, user_email)
+    return User(user_name, user_email)
 
 def display_available_flights():
     '''Display a list of flights for the user to book.'''
@@ -111,8 +110,134 @@ def display_available_flights():
     for flight in flights:
         flight.display_flight()
 
+def loooooop(user):
+    """Allows a customer to add/edit/remove/view items in their order."""
+
+    # Is True when the customer is booking their flights. Becomes False
+    # when the customer has finished booking their flights.
+    customer_booking_flights = True
+
+    # Runs while the customer is booking their flights
+    while customer_booking_flights:
+        # Gives the user a list of what they can do
+        print("""---------------------------------------------------------------------------------------------------
+1 - Book flight      3 - Remove ticket from Order      5 - Cancel Order and Quit
+2 - Show tickets     4 - Finish Order                  
+---------------------------------------------------------------------------------------------------""")
+
+        # Takes user input for what the customer wants to do, uses try/except to validate
+        try:
+            choice = int(input("Enter the number which corresponds to what you would like to do: ").strip())
+        except:
+            print("Please try again")
+        else:
+            # If the customer enters 0, display the menu
+            if choice == 0:
+                continue
+
+            # If the customer enters 1, let the customer add an item to their order
+            elif choice == 1:
+                display_available_flights()
+
+                # Becomes true once the user has chosen the flight they want to book,
+                # used with validation
+                user_chosen_flight = False
+
+                # Take user input for the flight the user wants to book
+                while not user_chosen_flight:
+                    flight_to_book = input("Enter the code of the flight you want to book: ").strip()
+
+                    # Check that user has entered the code for a flight that exists
+                    flight_exists = False
+
+                    # Check the flight code entered by the user with the flight code of each
+                    # available flight. This is to make sure that the flight code entered by
+                    # the user corresponds to an actual flight that exists.
+                    for flight in flights:
+                        if flight.flight_code == flight_to_book:
+                            flight_exists = True
+                            user_flight = flight
+
+                    # If the user did not enter a valid flight code, tell them this.
+                    # Otherwise, set user_chosen_flight to True so that they can continue on.
+                    if flight_exists == False:
+                        print("Please enter the code of a flight on the list!")
+                    else:
+                        user_chosen_flight = True
+
+                ticket = user_flight.book_flight()
+                user.add_ticket(ticket)
+
+                print("Ticket added to order")
+
+            # If the customer enters 2, display the tickets in their order
+            elif choice == 2:
+                # First checks that the customer's order is not empty before trying to display it
+                if len(user.tickets) == 0:
+                    print("You currently have no tickets")
+                else:
+                    for t in user.tickets:
+                        
+                        # Create column headings
+                        print("Airline           | Code  | City            | Date/Time | Type | Price")
+                        print("------------------|-------|-----------------|-----------|------|------")
+
+                        # Display each ticket in the user's order
+                        print(f"{t.airline: <17} | {t.flight_code} | {t.destination_airport: <15} | {str(t.age_type): <9} | $")
+
+            # If the customer enters 3, let the customer remove an item from their order
+            elif choice == 3:
+                # Start by checking that the user has a ticket that can be removed
+                if len(user.tickets) != 0:
+                    # Select what ticket to remove
+                    ticket_to_remove = 3
+
+                    user.remove_ticket(ticket_to_remove)
+                else:
+                    print("You have no tickets currently so none can be removed.")
+
+
+            # If the customer enters 5, assuming that their order is not blank, set
+            # customer_taking_order to False and let them move on to the next stage.
+            elif choice == 4:
+                # Checks if the customer's order is empty. If it is, the customer is not
+                # able to confirm it
+                if len(user.tickets) == 0:
+                    print("You cannot confirm your order as it is empty.")
+                else:
+                    customer_booking_flights = False
+
+            # If the customer enters 6, return "Order Cancelled" from the function as they
+            # have chosen to cancel their order. This string is used to stop the program
+            # later on from trying to add the customer's order to the global list of orders,
+            # if the customer has chosen to cancel thier order.
+            elif choice == 5:
+                user_response = input("Are you sure you want to cancel your order and quit (y/n)?: ").strip().lower()
+                if user_response == 'y':
+                    print("Have a nice day!")
+                    quit()
+                elif user_response == 'n':
+                    continue
+                else:
+                    print("Please enter either y or n.")
+
+
+            # If the customer did not enter one of the menu options, tell them they must do so
+            else:
+                print("Please enter a number which corresponds to one of the options")
+
 flights = []
 for flight in ALL_FLIGHTS:
     f = Flight(flight[FLIGHT_AIRLINE], flight[FLIGHT_CODE], flight[FLIGHT_DEST_CITY], flight[FLIGHT_DEST_AIRPORT], flight[FLIGHT_DEPT], flight[FLIGHT_BASE_PRICE])
 
     flights.append(f)
+
+def main():
+    # Greet user and get their information
+    print("Welcome to the Flight Manager App!")
+
+    user = user_login()
+
+    loooooop(user)
+
+main()
