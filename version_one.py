@@ -75,3 +75,28 @@ class User:
             total += ticket.price
 
         return total
+
+def user_login():
+    '''Get the user's information'''
+    global u
+
+    user_entered_valid_name = False
+    user_entered_valid_email = False
+
+    while not user_entered_valid_name:
+        try:
+            user_name = input("What is your name?: ")
+        except:
+            print("Please enter your name.")
+        else:
+            user_entered_valid_name = True
+
+    while not user_entered_valid_email:
+        try:
+            user_email = input("What is your email?: ")
+        except:
+            print("Please enter your email.")
+        else:
+            user_entered_valid_email = True
+
+    u = User(user_name, user_email)
