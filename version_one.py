@@ -100,3 +100,19 @@ def user_login():
             user_entered_valid_email = True
 
     u = User(user_name, user_email)
+
+def display_available_flights():
+    '''Display a list of flights for the user to book.'''
+
+    # Display flights
+    print("Airline           | Code  | City            | Date/Time | Price")
+    print("------------------|-------|-----------------|-----------|---------")
+
+    for flight in flights:
+        flight.display_flight()
+
+flights = []
+for flight in ALL_FLIGHTS:
+    f = Flight(flight[FLIGHT_AIRLINE], flight[FLIGHT_CODE], flight[FLIGHT_DEST_CITY], flight[FLIGHT_DEST_AIRPORT], flight[FLIGHT_DEPT], flight[FLIGHT_BASE_PRICE])
+
+    flights.append(f)
