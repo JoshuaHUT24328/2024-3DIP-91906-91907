@@ -81,7 +81,7 @@ ADULT_TICKET_PRICE = 1.00       # No discounts for Adults
 SENIOR_TICKET_PRICE = 0.60
 
 # Characters that are not in the alphabet, but that are allowed in a user's name
-ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " "]
+ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " ", "'"]
 
 class Flight:
     def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, base_price):
@@ -245,6 +245,7 @@ def user_login():
                 else:
                     print("Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
                     user_entered_valid_name = False
+                    break
 
     # Get user input for the user's email
     while not user_entered_valid_email:
@@ -299,7 +300,7 @@ def take_order(user):
         try:
             choice = int(input("Enter the number which corresponds to what you would like to do: ").strip())
         except:
-            print("Please try again")
+            print("\nPlease try again\n")
         else:
             # If the customer enters 1, let the customer add a ticket to their order
             if choice == 1:
@@ -337,7 +338,7 @@ def take_order(user):
                 user.add_ticket(ticket)
 
                 # Confirmation for the user to tell them that their ticket has been added to their order.
-                print("Ticket added to order")
+                print(f"{ticket.age_type}'s Ticket added to order")
 
             # If the customer enters 2, display the tickets in their order
             elif choice == 2:
@@ -350,7 +351,9 @@ def take_order(user):
                 # Start by checking that the user has a ticket that can be removed
                 if len(user.tickets) != 0:
                     # Display the tickets that the user has
+                    print("")
                     print(user.display_tickets())
+                    print("")
 
                     # Becomes true once the user has selected which ticket to remove. Used to help
                     # with validation
@@ -382,14 +385,14 @@ def take_order(user):
                     user.remove_ticket(ticket_to_remove - 1)
                 else:
                     # If the user has no tickets to be removed, tell them this.
-                    print("You have no tickets currently so none can be removed.")
+                    print("\nYou have no tickets currently so none can be removed.\n")
 
             # If the customer enters 4, let the customer confirm/finish their order.
             elif choice == 4:
                 # Checks if the customer's order is empty. If it is, the customer is not
                 # able to confirm it.
                 if len(user.tickets) == 0:
-                    print("You cannot confirm your order as it is empty.")
+                    print("\nYou cannot confirm your order as it is empty.\n")
                 else:
                     # Customer is able to confirm/finish their order, so set customer_booking_flights
                     # to False so that the loop while terminate.
@@ -403,7 +406,7 @@ def take_order(user):
                 while not user_given_response:
                     try:
                         # Take user input
-                        user_response = input("Are you sure you want to cancel your order and quit (y/n)?: ").strip().lower()
+                        user_response = input("\nAre you sure you want to cancel your order and quit (y/n)?: ").strip().lower()
                     except:
                         print("Please enter either y or n.")
                     else:
@@ -414,6 +417,7 @@ def take_order(user):
                             quit()
                         elif user_response == 'n':
                             # Allow while loop to terminate.
+                            print("")
                             user_given_response = True
                         else:
                             # Tell the user to enter valid input and allow loop to repeat so that they have another try.
@@ -421,7 +425,7 @@ def take_order(user):
 
             # If the customer did not enter one of the menu options, tell them they must do so
             else:
-                print("Please enter a number which corresponds to one of the options")
+                print("\nPlease enter a number which corresponds to one of the options\n")
 
 def confirm_order(user):
     '''Handle the final part of the program where the use can see their finished order and is written to file.'''
@@ -430,8 +434,7 @@ def confirm_order(user):
     print(f"Name: {user.name}")
     print(f"Email: {user.email}")
     print("---------------------------------------------------------------------------------------------------")
-    user.display_tickets()
-    print(f"Total price ${user.calculate_total_price()}")
+    print(f"{user.display_tickets()}")
 
     # Write user's ticket information to an external file
     with open("orders.txt", "a") as file:
@@ -477,7 +480,7 @@ while user_using_program:
             if user_use_again == 'y':
                 # If user wants to use the program again, stop this while loop running so that the main
                 # function is called again.
-                user_using_program = False
+                user_given_input = True
             elif user_use_again == 'n':
                 # If the user wants to quit the program, farewell them and call quit().
                 print("Have a good day!")
