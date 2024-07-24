@@ -1,5 +1,7 @@
-# 01/07/2024
-# Just for making a (secret) start
+# Date: 19/07/2024
+# Author: Joshua Hutchings
+# Version: 1
+# Purpose: Create a program that allows the user to book a plane flight
 
 from datetime import time
 
