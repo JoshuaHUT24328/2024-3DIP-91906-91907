@@ -5,6 +5,7 @@
 
 from datetime import datetime
 
+# List of all flights the user can choose from
 ALL_FLIGHTS = [
     ["Air New Zealand", "NZ101", "Wellington, New Zealand", "Wellington International Airport", "WLG", datetime(2024, 7, 10, 6, 30), 150.0],
     ["Qantas", "QF122", "Sydney, Australia", "Sydney Kingsford Smith Airport", "SYD", datetime(2024, 7, 10, 7, 45), 350.0],
@@ -60,17 +61,7 @@ ALL_FLIGHTS = [
     ["Qantas", "QF165", "Perth, Australia", "Perth Airport", "PER", datetime(2024, 7, 12, 1, 15), 370.0]
     ]
 
-#ALL_FLIGHTS = [["Jetstar",           "JQ129", "Hanoi", "Avarua Rarotonga International Airport", "RAR", time(15, 10, 0), 500],
-#               ["Air New Zealand",   "AB123", "Queenstown", "Airport A",                              "AAA", time(21, 21, 21), 69],
-#               ["Qantas",            "GG312", "Hanoi", "Airport Z",                              "ZZZ", time(16, 30, 0), 33],
-#               ["Air New Zesaland",  "AB123", "Christchurch", "Airport AB",                             "AAA", time(21, 21, 21), 69],
-#               ["Qanstas",           "GG312", "Hanoi", "Airport Z",                              "ZZZ", time(16, 30, 0), 33],
-#               ["Air Newe Zesaland", "AB123", "New York", "Airport AB",                             "AAA", time(21, 21, 21), 69],
-#               ["Qanstaks",          "GG312", "Hanoi", "Airport Z",                              "ZZZ", time(16, 30, 0), 33],
-#               ["Air New Zresaland", "AB123", "Marshall Island", "Airport AB",                             "AAA", time(21, 21, 21), 69],
-#               ["Qanstaaas",         "GG312", "Hanoi", "Airport Z",                              "ZZZ", time(16, 30, 0), 33],
-#               ["Air New Zealand", "NZ990", "Apia, Fiji", "Faleolo International Airport", "APW", time(8, 45, 0), ]]
-
+# Constants to be used when accessing the data of flights, so as to improve code readability
 FLIGHT_AIRLINE           = 0
 FLIGHT_CODE              = 1
 FLIGHT_DEST              = 2
@@ -79,8 +70,22 @@ FLIGHT_DEST_AIRPORT_CODE = 4
 FLIGHT_DEPT              = 5
 FLIGHT_BASE_PRICE        = 6
 
+# Constants which store the age boundaries for tickets
+MAX_CHILD_AGE = 17
+MAX_ADULT_AGE = 64
+MAX_SENIOR_AGE = 125
+
+# Constants to be used when calculating the ticket prices for different age groups
+CHILD_TICKET_PRICE = 0.75
+ADULT_TICKET_PRICE = 1.00       # No discounts for Adults
+SENIOR_TICKET_PRICE = 0.60
+
+# Characters that are not in the alphabet, but that are allowed in a user's name
+ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " "]
+
 class Flight:
     def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, base_price):
+        '''Class Constructor method'''
         self.airline = airline
         self.flight_code = flight_code
         self.destination = destination
@@ -92,43 +97,78 @@ class Flight:
     def display_flight(self):
         '''Display flight on list of flights'''
 
-        print(f"{self.airline: <18} | {self.flight_code: <5} | {self.destination: <25} | {str(self.estimated_departure): <19} | ${self.base_price:.2f}")
+        # Output a string containing all of the information about a flight, spaced out carefully to align with a table.
+        print(f"{self.airline: <18} | {self.flight_code: <5} | {self.destination: <38} | {str(self.estimated_departure): <19} | ${self.base_price:.2f}")
 
     def book_flight(self):
         '''Book the flight for the user'''
         
+        # Becomes false once the user has booked a flight, used to help with validating input
         user_booking_flight = True
         while user_booking_flight:
-            user_age = int(input("How old is the recipient of this ticket?: "))
+            try:
+                # While the user is booking a flight, take their input for the age of whoever will have the ticket.
+                # As the user may be booking a flight for more people than just themselves, they are prompted to enter
+                # an age every time they book a ticket, rather than just at the beginning of the program.
+                user_age = int(input("How old is the recipient of this ticket?: "))
 
-            if user_age < 18:
-                age_type = "Child"
-            elif user_age < 65:
-                age_type = "Adult"
+            except:
+                print("Please enter an age.")
             else:
-                age_type = "Senior"
+                # Validate the user's input and/or determine the age type of the ticket holder.
+                if user_age < 0:
+                    # Accept 0 as an age because a baby who is just born technically has an age equivalent of 0 years old.
+                    print("An age cannot be a negative number, please enter a real age.")
+                elif user_age <= MAX_CHILD_AGE:
+                    # If the age entered is not less than 0, we already know that it must be greater than or equal to zero,
+                    # so we just need to check that it is less than or equal to MAX_CHILD_AGE. That is, we do not need to
+                    # do: user_age >= 0 and user_age <= MAX_CHILD_AGE
+                    # Instead, for more succint code, we just need to test on the upper limit that user_age <= MAX_CHILD_AGE.
+                    age_type = "Child"
+                    # As the user has provided input for a valid age type, set user_booking_flight to False to skip any further
+                    # iterations of the while loop.
+                    user_booking_flight = False
+                elif user_age <= MAX_ADULT_AGE:
+                    age_type = "Adult"
+                    user_booking_flight = False
+                elif user_age <= MAX_SENIOR_AGE:
+                    age_type = "Senior"
+                    user_booking_flight = False
+                else:
+                    # If the user enters an age which is greater than the maximum senior age (i.e. an age that is 
+                    # unrealistically high), tell them to enter a real age and reject their input.
+                    print("Please enter a real age.")
 
-            user_booking_flight = False
-
-        return Ticket(self.airline, self.flight_code, self.destination_airport, age_type, self.base_price)
+        # Once execution reaches this point, the user has provided a valid age type. Thus, instantiate
+        # a ticket object for the ticket chosen by the user.
+        return Ticket(self.airline, self.flight_code, self.destination, self.destination_airport, self.destination_airport_code, self.estimated_departure, age_type, self.base_price)
 
 class Ticket:
-    def __init__(self, airline, flight_code, destination_airport, age_type, base_price):
+    def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, age_type, base_price):
         self.airline = airline
         self.flight_code = flight_code
+        self.destination = destination
         self.destination_airport = destination_airport
+        self.destination_airport_code = destination_airport_code
+        self.estimated_departure = estimated_departure
         self.age_type = age_type
-        self.discount_amount = 0.0
 
         self.price = self.calculate_price(base_price)
 
-    def update_details(self):
-        '''Update ticket details'''
-        pass
-
     def calculate_price(self, base_price):
         '''Calculate price on ticket from base price for flight, as well as other factors'''
-        return base_price
+
+        # Start by setting the price as the base price for the flight
+        price = base_price
+        # Adjust price based on age
+        if self.age_type == "Child":
+            price *= CHILD_TICKET_PRICE
+        elif self.age_type == "Adult":
+            price *= ADULT_TICKET_PRICE
+        else:
+            price *= SENIOR_TICKET_PRICE
+
+        return price
 
 class User:
     def __init__(self, name, email):
@@ -140,14 +180,17 @@ class User:
         '''Add a ticket that the user has purchased'''
         self.tickets.append(ticket)
 
-    def remove_ticket(self):
+    def remove_ticket(self, ticket_number):
         '''Remove a selected ticket that the user purchased'''
-        pass
+        self.tickets.pop(ticket_number)
 
     def calculate_total_price(self):
         '''Calculate the total price of all the user's tickets'''
 
+        # Variable used to calculate price
         total = 0
+        # Iterate through each ticket the user has an increment the total variable by
+        # the price of each ticket.
         for ticket in self.tickets:
             total += ticket.price
 
@@ -157,17 +200,24 @@ class User:
         '''Return a string to display all of the user's tickets'''
         # First checks that the customer's order is not empty before trying to display it
         if len(self.tickets) == 0:
-            print("You currently have no tickets")
+            return "You currently have no tickets"
         else:
-            output_str = ""
+            # String to store the output showing information about a ticket
+            output_str = f"Summary of tickets ordered by {self.name} ({self.email})\n"
+            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
 
             # Create column headings
-            output_str += "Airline            | Code  | Destination               | Date/Time           | Type   | Price \n"
-            output_str += "-------------------|-------|---------------------------|---------------------|--------|-------\n"
+            output_str += "#  | Airline            | Code  | Destination                            | Type   | Date/Time           | Price \n"
+            output_str += "---|--------------------|-------|----------------------------------------|--------|---------------------|--------\n"
             
-            for t in self.tickets: 
+            for user_ticket in self.tickets:
                 # Display each ticket in the user's order
-                output_str += (f"{t.airline: <18} | {t.flight_code: <5} | {t.destination_airport: <25} | {str(t.age_type): <9} | ${t.price}\n")
+                output_str += (f"{self.tickets.index(user_ticket) + 1: <2} | {user_ticket.airline: <18} | {user_ticket.flight_code: <5} | {user_ticket.destination_airport: <38} | {str(user_ticket.age_type): <6} | {str(user_ticket.estimated_departure): <19} | ${user_ticket.price:.2f}\n")
+
+            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
+
+            # Display the total price of the user's order
+            output_str += f"Total: ${self.calculate_total_price():.2f}"
 
             return output_str
 
@@ -187,6 +237,15 @@ def user_login():
         else:
             user_entered_valid_name = True
 
+            # Check that the user's name does not contain any invalid characters, and if it does,
+            # then make the loop repeat so that the user's input is taken again.
+            for character in user_name:
+                if character.isalpha() or character in ACCEPTED_SPECIAL_CHARACTERS:
+                    continue
+                else:
+                    print("Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
+                    user_entered_valid_name = False
+
     # Get user input for the user's email
     while not user_entered_valid_email:
         try:
@@ -194,23 +253,34 @@ def user_login():
         except:
             print("Please enter your email.")
         else:
-            user_entered_valid_email = True
+            # Iterate through each character in user's email address to check that there exists an '@'
+            # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
+            # address, characters that are not allowed in a name, it becomes more difficult to validate user input
+            # for email addresses. However, ALL email addresses must have an @ symbol, so an email address that
+            # does not must be invalid.
+            for character in user_email:
+                if character == '@':
+                    user_entered_valid_email = True
+                    break
 
-    # Instantiate user object from their name and email which they have provided
+            if user_entered_valid_email == False:
+                print("Please enter a valid email address.")
+
+    # Instantiate user object from the user's name and email address which they have provided
     return User(user_name, user_email)
 
 def display_available_flights():
     '''Display a list of flights for the user to book.'''
 
     # Create column headings
-    print("Airline            | Code  | Destination               | Date/Time           | Price")
-    print("-------------------|-------|---------------------------|---------------------|---------")
+    print("Airline            | Code  | Destination                            | Date/Time           | Price")
+    print("-------------------|-------|----------------------------------------|---------------------|---------")
 
     # Display each flight
     for flight in flights:
         flight.display_flight()
 
-def loooooop(user):
+def take_order(user):
     """Handle the main part of the program where the user is ordering tickets, managing their order, etc."""
 
     # Is True when the customer is booking their flights. Becomes False
@@ -231,16 +301,13 @@ def loooooop(user):
         except:
             print("Please try again")
         else:
-            # If the customer enters 0, display the menu
-            if choice == 0:
-                continue
-
-            # If the customer enters 1, let the customer add an item to their order
-            elif choice == 1:
+            # If the customer enters 1, let the customer add a ticket to their order
+            if choice == 1:
+                # Display flights available for the user to choose from.
                 display_available_flights()
 
                 # Becomes true once the user has chosen the flight they want to book,
-                # used with validation
+                # used to help with validation.
                 user_chosen_flight = False
 
                 # Take user input for the flight the user wants to book
@@ -256,83 +323,125 @@ def loooooop(user):
                     for flight in flights:
                         if flight.flight_code == flight_to_book:
                             flight_exists = True
-                            user_flight = flight
+                            chosen_flight = flight
 
-                    # If the user did not enter a valid flight code, tell them this.
+                    # If the user did not enter a valid flight code, tell them this and make the loop run again.
                     # Otherwise, set user_chosen_flight to True so that they can continue on.
                     if flight_exists == False:
                         print("Please enter the code of a flight on the list!")
                     else:
                         user_chosen_flight = True
 
-                ticket = user_flight.book_flight()
+                # Instantiate ticket object and add it to the user's order.
+                ticket = chosen_flight.book_flight()
                 user.add_ticket(ticket)
 
+                # Confirmation for the user to tell them that their ticket has been added to their order.
                 print("Ticket added to order")
 
             # If the customer enters 2, display the tickets in their order
             elif choice == 2:
+                print("")                       # Extra print statement(s) to create newlines for more appealing formatting
                 print(user.display_tickets())
+                print("")
 
             # If the customer enters 3, let the customer remove an item from their order
             elif choice == 3:
                 # Start by checking that the user has a ticket that can be removed
                 if len(user.tickets) != 0:
-                    # Select what ticket to remove
-                    ticket_to_remove = 3
+                    # Display the tickets that the user has
+                    print(user.display_tickets())
 
-                    user.remove_ticket(ticket_to_remove)
+                    # Becomes true once the user has selected which ticket to remove. Used to help
+                    # with validation
+                    user_selected_ticket = False
+                    # Runs while the user has not yet selected a ticket
+                    while not user_selected_ticket:
+                        # Take user input for the ticket that the user wants to remove,
+                        # uses try/except to validate user input.
+                        try:
+                            ticket_to_remove = int(input("Enter the number of the ticket you would like to remove: "))
+                        except:
+                            print("Please enter the number of a ticket you want to remove")
+                        else:
+                            # Check that the number entered by the user is within a valid range.
+                            # If not, the loop will repeat so that the user has another chance to enter
+                            # a valid ticket number.
+                            if ticket_to_remove > len(user.tickets) or ticket_to_remove <= 0:
+                                print("Please enter a number which corresponds to a ticket.")
+                            else:
+                                user_selected_ticket = True
+
+                    # Remove the selected ticket from the user's order. Note that
+                    # ticket_to_remove is 1 greater than the index of the ticket
+                    # to be removed, so hence, remove the ticket with an index of
+                    # ticket_to_remove - 1, rather than ticket_to_remove.
+                    # This is a consequence of the fact that the index of items in
+                    # a list start at 0, whereas the number shown next to each ticket
+                    # when display starts at 1.
+                    user.remove_ticket(ticket_to_remove - 1)
                 else:
+                    # If the user has no tickets to be removed, tell them this.
                     print("You have no tickets currently so none can be removed.")
 
-
-            # If the customer enters 5, assuming that their order is not blank, set
-            # customer_taking_order to False and let them move on to the next stage.
+            # If the customer enters 4, let the customer confirm/finish their order.
             elif choice == 4:
                 # Checks if the customer's order is empty. If it is, the customer is not
-                # able to confirm it
+                # able to confirm it.
                 if len(user.tickets) == 0:
                     print("You cannot confirm your order as it is empty.")
                 else:
+                    # Customer is able to confirm/finish their order, so set customer_booking_flights
+                    # to False so that the loop while terminate.
                     customer_booking_flights = False
 
-            # If the customer enters 6, return "Order Cancelled" from the function as they
-            # have chosen to cancel their order. This string is used to stop the program
-            # later on from trying to add the customer's order to the global list of orders,
-            # if the customer has chosen to cancel thier order.
+            # If the customer enters 5, let the customer cancel their order and quit the program.
             elif choice == 5:
-                user_response = input("Are you sure you want to cancel your order and quit (y/n)?: ").strip().lower()
-                if user_response == 'y':
-                    print("Have a nice day!")
-                    quit()
-                elif user_response == 'n':
-                    continue
-                else:
-                    print("Please enter either y or n.")
-
+                # Take user input to ensure that the customer is actually intending on cancelling their order and quitting.
+                # Uses try/except and while loop to validate user input.
+                user_given_response = False
+                while not user_given_response:
+                    try:
+                        # Take user input
+                        user_response = input("Are you sure you want to cancel your order and quit (y/n)?: ").strip().lower()
+                    except:
+                        print("Please enter either y or n.")
+                    else:
+                        # Respond based on user input
+                        if user_response == 'y':
+                            # Farewell the user and quit the program
+                            print("Have a nice day!")
+                            quit()
+                        elif user_response == 'n':
+                            # Allow while loop to terminate.
+                            user_given_response = True
+                        else:
+                            # Tell the user to enter valid input and allow loop to repeat so that they have another try.
+                            print("Please enter either y or n.")
 
             # If the customer did not enter one of the menu options, tell them they must do so
             else:
                 print("Please enter a number which corresponds to one of the options")
 
-def checkout(user):
+def confirm_order(user):
     '''Handle the final part of the program where the use can see their finished order and is written to file.'''
 
     # Display the user's order
     print(f"Name: {user.name}")
     print(f"Email: {user.email}")
-    print("-------------------------------------------------------------------------------------")
+    print("---------------------------------------------------------------------------------------------------")
     user.display_tickets()
     print(f"Total price ${user.calculate_total_price()}")
 
+    # Write user's ticket information to an external file
     with open("orders.txt", "a") as file:
-        file.write(f"Name: {user.name}\n")
+        file.write(f"\nName: {user.name}\n")
         file.write(f"Email: {user.email}\n")
-        file.write(user.display_tickets())
+        file.write(f"{user.display_tickets()}\n")
 
 # List to store each flight as an object
 flights = []
-# For each flight, instantiate a Flight class object for it and add it to the flights list
+# For each flight, instantiate a Flight object for it and add it to the flights list
 for flight in ALL_FLIGHTS:
     f = Flight(flight[FLIGHT_AIRLINE], flight[FLIGHT_CODE], flight[FLIGHT_DEST], flight[FLIGHT_DEST_AIRPORT], flight[FLIGHT_DEST_AIRPORT_CODE], flight[FLIGHT_DEPT], flight[FLIGHT_BASE_PRICE])
 
@@ -344,15 +453,36 @@ def main():
     print("Welcome to the Flight Manager App!")
     user = user_login()
 
-    loooooop(user)
+    # Main part of program of taking the user's order.
+    take_order(user)
 
-    # If the program reaches this point, the user is happy with their tickets
-    checkout(user)
+    # If the program reaches this point, the user is happy with their tickets, so display their order and write to file.
+    confirm_order(user)
 
+# Used to control loop which calls the main function.
 user_using_program = True
 while user_using_program:
+    # Call main function for program
     main()
 
-    user_use_again = input("Would you like to make another order (y/n)?: ").strip().lower()
-    if user_use_again != 'y':
-        user_using_program = False
+    # Take user input for whether wants to use program again, validating it to ensure it is valid.
+    user_given_input = False
+    while not user_given_input:
+        try:
+            # Get user input for whether the user wants to use the program again after finishing.
+            user_use_again = input("Would you like to make another order (y/n)?: ").strip().lower()
+        except:
+            print("Please enter either y or n.")
+        else:
+            if user_use_again == 'y':
+                # If user wants to use the program again, stop this while loop running so that the main
+                # function is called again.
+                user_using_program = False
+            elif user_use_again == 'n':
+                # If the user wants to quit the program, farewell them and call quit().
+                print("Have a good day!")
+                quit()
+            else:
+                # If the user enters invalid input, tell them this and repeat the loop so that their input
+                # is taken again.
+                print("Please enter either y or n.")
