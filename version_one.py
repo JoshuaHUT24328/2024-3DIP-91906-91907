@@ -1,7 +1,5 @@
-# Date: 19/07/2024
-# Author: Joshua Hutchings
-# Version: 1
-# Purpose: Create a program that allows the user to book a plane flight
+# 01/07/2024
+# Just for making a (secret) start
 
 from datetime import time
 
@@ -39,7 +37,21 @@ class Flight:
 
     def book_flight(self):
         '''Book the flight for the user'''
-        pass
+        
+        user_booking_flight = True
+        while user_booking_flight:
+            user_age = int(input("How old is the recipient of this ticket?: "))
+
+            if user_age < 18:
+                age_type = "Child"
+            elif user_age < 65:
+                age_type = "Adult"
+            else:
+                age_type = "Senior"
+
+            user_booking_flight = False
+
+        return Ticket(self.airline, self.flight_code, self.destination_airport, age_type)
 
 class Ticket:
     def __init__(self, airline, flight_code, destination_airport, age_type):
@@ -49,9 +61,15 @@ class Ticket:
         self.age_type = age_type
         self.discount_amount = 0.0
 
+        self.price = self.calculate_price()
+
+    def update_details(self):
+        '''Update ticket details'''
+        pass
+
     def calculate_price(self):
         '''Calculate price on ticket from base price for flight, as well as other factors'''
-        pass
+        return 
 
 class User:
     def __init__(self, name, email):
@@ -79,9 +97,11 @@ class User:
 def user_login():
     '''Get the user's information'''
 
+    # Used to help validate user input
     user_entered_valid_name = False
     user_entered_valid_email = False
 
+    # Get user input for the user's name
     while not user_entered_valid_name:
         try:
             user_name = input("What is your name?: ")
@@ -90,6 +110,7 @@ def user_login():
         else:
             user_entered_valid_name = True
 
+    # Get user input for the user's email
     while not user_entered_valid_email:
         try:
             user_email = input("What is your email?: ")
@@ -98,15 +119,17 @@ def user_login():
         else:
             user_entered_valid_email = True
 
+    # Instantiate user object from their name and email which they have provided
     return User(user_name, user_email)
 
 def display_available_flights():
     '''Display a list of flights for the user to book.'''
 
-    # Display flights
+    # Create column headings
     print("Airline           | Code  | City            | Date/Time | Price")
     print("------------------|-------|-----------------|-----------|---------")
 
+    # Display each flight
     for flight in flights:
         flight.display_flight()
 
@@ -226,7 +249,10 @@ def loooooop(user):
             else:
                 print("Please enter a number which corresponds to one of the options")
 
+
+# List to store each flight as an object
 flights = []
+# For each flight, instantiate a Flight class object for it and add it to the flights list
 for flight in ALL_FLIGHTS:
     f = Flight(flight[FLIGHT_AIRLINE], flight[FLIGHT_CODE], flight[FLIGHT_DEST_CITY], flight[FLIGHT_DEST_AIRPORT], flight[FLIGHT_DEPT], flight[FLIGHT_BASE_PRICE])
 
@@ -238,6 +264,17 @@ def main():
 
     user = user_login()
 
+
+    #user = User("Joshua", "joshua@gmail.com")
+    #ticket = Ticket(test_flight.airline, test_flight.flight_code, test_flight.destination_airport, "Adult")
+    #user.add_ticket(ticket)
+
     loooooop(user)
 
-main()
+user_using_program = True
+while user_using_program:
+    main()
+
+    user_use_again = input("Would you like to make another order (y/n)?: ").strip().lower()
+    if user_use_again != 'y':
+        user_using_program = False
