@@ -1,4 +1,4 @@
-# Date: 29/07/2024
+# Date: 31/07/2024
 # Author: Joshua Hutchings
 # Version: 2
 # Purpose: Create a program that allows the user to book a plane flight
@@ -85,6 +85,67 @@ SENIOR_TICKET_PRICE = 0.60
 # Characters that are not in the alphabet, but that are allowed in a user's name
 ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " ", "'"]
 
+class Flight:
+    def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, base_price):
+        '''Class Constructor method'''
+        self.airline = airline
+        self.flight_code = flight_code
+        self.destination = destination
+        self.destination_airport = destination_airport
+        self.destination_airport_code = destination_airport_code
+        self.estimated_departure = estimated_departure
+        self.base_price = base_price                    # Base price is defined as the price for an economy, Adult ticket, with no discounts.
+                                                        # For a different type of ticket (first class, child ticket, etc), the price of the ticket will be calculated to account for this.
+    def display_flight(self):
+        '''Display flight on list of flights'''
+
+        # Output a string containing all of the information about a flight, spaced out carefully to align with a table.
+        print(f"{self.airline: <18} | {self.flight_code: <5} | {self.destination: <38} | {str(self.estimated_departure): <19} | ${self.base_price:.2f}")
+
+    def book_flight(self):
+        '''Book the flight for the user'''
+        
+        # Becomes false once the user has booked a flight, used to help with validating input
+        user_booking_flight = True
+        while user_booking_flight:
+            try:
+                # While the user is booking a flight, take their input for the age of whoever will have the ticket.
+                # As the user may be booking a flight for more people than just themselves, they are prompted to enter
+                # an age every time they book a ticket, rather than just at the beginning of the program.
+                user_age = int(input("How old is the recipient of this ticket?: "))
+
+            except:
+                print("Please enter an age.")
+            else:
+                # Validate the user's input and/or determine the age type of the ticket holder.
+                if user_age < 0:
+                    # Accept 0 as an age because a baby who is just born technically has an age equivalent of 0 years old.
+                    print("An age cannot be a negative number, please enter a real age.")
+                elif user_age <= MAX_CHILD_AGE:
+                    # If the age entered is not less than 0, we already know that it must be greater than or equal to zero,
+                    # so we just need to check that it is less than or equal to MAX_CHILD_AGE. That is, we do not need to
+                    # do: user_age >= 0 and user_age <= MAX_CHILD_AGE
+                    # Instead, for more succint code, we just need to test on the upper limit that user_age <= MAX_CHILD_AGE.
+                    age_type = "Child"
+                    # As the user has provided input for a valid age type, set user_booking_flight to False to skip any further
+                    # iterations of the while loop.
+                    user_booking_flight = False
+                elif user_age <= MAX_ADULT_AGE:
+                    age_type = "Adult"
+                    user_booking_flight = False
+                elif user_age <= MAX_SENIOR_AGE:
+                    age_type = "Senior"
+                    user_booking_flight = False
+                else:
+                    # If the user enters an age which is greater than the maximum senior age (i.e. an age that is 
+                    # unrealistically high), tell them to enter a real age and reject their input.
+                    print("Please enter a real age.")
+
+        # Once execution reaches this point, the user has provided a valid age type. Thus, instantiate
+        # a ticket object for the ticket chosen by the user.
+        return Ticket(self.airline, self.flight_code, self.destination, self.destination_airport, self.destination_airport_code, self.estimated_departure, age_type, self.base_price)
+
+
 # Setup main window
 root = Tk()
 root.title("Flight Booking App")
@@ -94,11 +155,17 @@ def display_size():
     '''Using to determine the size that I want each window to be, will remove when done'''
     print(f"{root.winfo_width()}x{root.winfo_height()}")
 
-def main_frame():
-    '''Main frame of the program'''
+def clear_screen():
+    """Clear the window to create a 'clean canvas' for a new frame"""
 
     # Destroy login frame to create a 'clean canvas' for the Main frame.
     login_frame.destroy()
+
+def main_frame():
+    '''Main frame of the program'''
+    
+    # Clear any existing frame from the window before starting to create the main frame
+    clear_screen()
 
     # Main frame
     main_frame = Frame(root)
@@ -107,10 +174,54 @@ def main_frame():
     # Configure the rows and columns to be used in this frame. Doing this manually means that I can
     # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
     # fix the uniformity problem that arises with the grid method.
-    login_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
-    login_frame.columnconfigure(1, weight = 3, uniform = 'a')
-    login_frame.rowconfigure(0, weight = 2, uniform = 'a')
-    login_frame.rowconfigure((1, 2, 3, 4, 5), weight = 1, uniform = 'a')
+    main_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    main_frame.columnconfigure(1, weight = 3, uniform = 'a')
+    main_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    main_frame.rowconfigure((1, 2, 3, 4, 5, 6), weight = 1, uniform = 'a')
+
+    header_text_lbl = Label(main_frame, text = "Flight Booking App", font = ("Arial", 20))
+    header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
+
+    subheader_text_lbl = Label(main_frame, text = "What would you like to do?", font = ("Arial", 12))
+    subheader_text_lbl.grid(row = 1, column = 1, sticky = "NEWS")
+
+    book_flight_btn = Button(main_frame, text = "Book Flight")
+    book_flight_btn.grid(row = 2, column = 1, sticky = "WE")
+
+    show_tickets_btn = Button(main_frame, text = "Show Tickets")
+    show_tickets_btn.grid(row = 3, column = 1, sticky = "WE")
+    
+    remove_ticket_btn = Button(main_frame, text = "Remove ticket from Order")
+    remove_ticket_btn.grid(row = 4, column = 1, sticky = "WE")
+    
+    finish_order_btn = Button(main_frame, text = "Finish Order")
+    finish_order_btn.grid(row = 5, column = 1, sticky = "WE")
+    
+    cancel_order_btn = Button(main_frame, text = "Cancel Order")
+    cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
+
+def display_available_flights():
+    '''Display a list of flights on the screen for the user to book.'''
+
+    clear_screen()
+    pass
+    """
+    # Create column headings
+    print("Airline            | Code  | Destination                            | Date/Time           | Price")
+    print("-------------------|-------|----------------------------------------|---------------------|---------")
+
+    # Display each flight
+    for flight in flights:
+        flight.display_flight()
+    """
+
+# List to store each flight as an object
+flights = []
+# For each flight, instantiate a Flight object for it and add it to the flights list
+for flight in ALL_FLIGHTS:
+    f = Flight(flight[FLIGHT_AIRLINE], flight[FLIGHT_CODE], flight[FLIGHT_DEST], flight[FLIGHT_DEST_AIRPORT], flight[FLIGHT_DEST_AIRPORT_CODE], flight[FLIGHT_DEPT], flight[FLIGHT_BASE_PRICE])
+
+    flights.append(f)
 
 # Login frame
 login_frame = Frame(root)
