@@ -1,9 +1,11 @@
-# Date: 31/07/2024
+# Date: 01/08/2024
 # Author: Joshua Hutchings
 # Version: 2
 # Purpose: Create a program that allows the user to book a plane flight
 
 from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
 
 from datetime import datetime
 
@@ -96,11 +98,6 @@ class Flight:
         self.estimated_departure = estimated_departure
         self.base_price = base_price                    # Base price is defined as the price for an economy, Adult ticket, with no discounts.
                                                         # For a different type of ticket (first class, child ticket, etc), the price of the ticket will be calculated to account for this.
-    def display_flight(self):
-        '''Display flight on list of flights'''
-
-        # Output a string containing all of the information about a flight, spaced out carefully to align with a table.
-        print(f"{self.airline: <18} | {self.flight_code: <5} | {self.destination: <38} | {str(self.estimated_departure): <19} | ${self.base_price:.2f}")
 
     def book_flight(self):
         '''Book the flight for the user'''
@@ -145,6 +142,83 @@ class Flight:
         # a ticket object for the ticket chosen by the user.
         return Ticket(self.airline, self.flight_code, self.destination, self.destination_airport, self.destination_airport_code, self.estimated_departure, age_type, self.base_price)
 
+class Ticket:
+    def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, age_type, base_price):
+        self.airline = airline
+        self.flight_code = flight_code
+        self.destination = destination
+        self.destination_airport = destination_airport
+        self.destination_airport_code = destination_airport_code
+        self.estimated_departure = estimated_departure
+        self.age_type = age_type
+
+        self.price = self.calculate_price(base_price)
+
+    def calculate_price(self, base_price):
+        '''Calculate price on ticket from base price for flight, as well as other factors'''
+
+        # Start by setting the price as the base price for the flight
+        price = int(base_price)
+        # Adjust price based on age
+        if self.age_type == "Child":
+            price *= CHILD_TICKET_PRICE
+        elif self.age_type == "Adult":
+            price *= ADULT_TICKET_PRICE
+        else:
+            price *= SENIOR_TICKET_PRICE
+
+        return price
+
+class User:
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+        self.tickets = []
+
+    def add_ticket(self, ticket):
+        '''Add a ticket that the user has purchased'''
+        self.tickets.append(ticket)
+
+    def remove_ticket(self, ticket_number):
+        '''Remove a selected ticket that the user purchased'''
+        self.tickets.pop(ticket_number)
+
+    def calculate_total_price(self):
+        '''Calculate the total price of all the user's tickets'''
+
+        # Variable used to calculate price
+        total = 0
+        # Iterate through each ticket the user has an increment the total variable by
+        # the price of each ticket.
+        for ticket in self.tickets:
+            total += ticket.price
+
+        return total
+    
+    def display_tickets(self):
+        '''Return a string to display all of the user's tickets'''
+        # First checks that the customer's order is not empty before trying to display it
+        if len(self.tickets) == 0:
+            return "You currently have no tickets"
+        else:
+            # String to store the output showing information about a ticket
+            output_str = f"Summary of tickets ordered by {self.name} ({self.email})\n"
+            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
+
+            # Create column headings
+            output_str += "#  | Airline            | Code  | Destination                            | Type   | Date/Time           | Price \n"
+            output_str += "---|--------------------|-------|----------------------------------------|--------|---------------------|--------\n"
+            
+            for user_ticket in self.tickets:
+                # Display each ticket in the user's order
+                output_str += (f"{self.tickets.index(user_ticket) + 1: <2} | {user_ticket.airline: <18} | {user_ticket.flight_code: <5} | {user_ticket.destination_airport: <38} | {str(user_ticket.age_type): <6} | {str(user_ticket.estimated_departure): <19} | ${user_ticket.price:.2f}\n")
+
+            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
+
+            # Display the total price of the user's order
+            output_str += f"Total: ${self.calculate_total_price():.2f}"
+
+            return output_str
 
 # Setup main window
 root = Tk()
@@ -161,9 +235,127 @@ def clear_screen():
     # Destroy login frame to create a 'clean canvas' for the Main frame.
     login_frame.destroy()
 
+def create_ticket(flight_code, age):
+    
+    # Check that user has entered the code for a flight that exists
+    flight_exists = False
+
+    # Check the flight code entered by the user with the flight code of each
+    # available flight. This is to make sure that the flight code entered by
+    # the user corresponds to an actual flight that exists.
+    for flight in flights:
+        if flight.flight_code == flight_code:
+            flight_exists = True
+            chosen_flight = flight
+
+    # If the user did not enter a valid flight code, tell them this and make the loop run again.
+    # Otherwise, set user_chosen_flight to True so that they can continue on.
+    if flight_exists == False:
+        messagebox.showinfo("Error", "Please enter a flight code that exists")
+        return None
+    else:
+        user_chosen_flight = True
+
+    age = int(age)
+    age_type = StringVar()
+    # Validate the user's input and/or determine the age type of the ticket holder.
+    if age < 0:
+        # Accept 0 as an age because a baby who is just born technically has an age equivalent of 0 years old.
+        messagebox.showinfo("Error", "An age cannot be a negative number, please enter a real age.")
+        return None
+    elif age <= MAX_CHILD_AGE:
+        # If the age entered is not less than 0, we already know that it must be greater than or equal to zero,
+        # so we just need to check that it is less than or equal to MAX_CHILD_AGE. That is, we do not need to
+        # do: user_age >= 0 and user_age <= MAX_CHILD_AGE
+        # Instead, for more succint code, we just need to test on the upper limit that user_age <= MAX_CHILD_AGE.
+        age_type = "Child"
+    elif age <= MAX_ADULT_AGE:
+        age_type = "Adult"
+    elif age <= MAX_SENIOR_AGE:
+        age_type = "Senior"
+    else:
+        # If the user enters an age which is greater than the maximum senior age (i.e. an age that is 
+        # unrealistically high), tell them to enter a real age and reject their input.
+        messagebox.showinfo("Error", "Please enter a real age.")
+        return None
+
+    ticket = Ticket(chosen_flight.airline, chosen_flight.flight_code, chosen_flight.destination, chosen_flight.destination_airport, chosen_flight.destination_airport_code, chosen_flight.estimated_departure, age_type, chosen_flight.base_price)
+    user.add_ticket(ticket)
+    messagebox.showinfo("Confirmation", "Ticket added to order")
+    print(user.tickets)
+
+def book_flight():
+    #clear_screen()
+    main_frame.destroy()
+
+    book_flight_frame = Frame(root)
+    book_flight_frame.pack(side = "top", fill = "both", expand = True)
+
+    book_flight_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    book_flight_frame.columnconfigure(1, weight = 7, uniform = 'a')
+    book_flight_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    book_flight_frame.rowconfigure(1, weight = 10, uniform = 'a')
+    book_flight_frame.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+    
+    header_text_lbl = Label(book_flight_frame, text = "Book Flight", font = ("Arial", 20))
+    header_text_lbl.grid(row = 0, column = 0, columnspan = 3)
+
+    # Columns for table of flights
+    column = ("Airline", "Code", "Destination", "Date/Time", "Price")
+
+    # Create a Treeview widget for the table
+    tree = ttk.Treeview(book_flight_frame, columns = column, show = "headings")
+    tree.column("Airline", minwidth=130, width = 130, stretch=NO)
+    tree.column("Code", minwidth=50, width = 70, stretch=NO)
+    tree.column("Destination", minwidth=50, width = 70, stretch=NO)
+    tree.column("Code", minwidth=50, width = 70, stretch=NO)
+    tree.column("Code", minwidth=50, width = 70, stretch=NO)
+
+    # Enter the headings for each column in the table
+    tree.heading('Airline', text='Airline')
+    tree.heading('Code', text='Code')
+    tree.heading('Destination', text='Destination')
+    tree.heading('Date/Time', text='Date/Time')
+    tree.heading('Price', text='Price')
+
+    # List to store each flight/row of the table in (in tuple format)
+    data = []
+
+    # Iterate through each flight in the list of all flights and add a tuple for each
+    # flight to the data list.
+    for i in range(len(ALL_FLIGHTS)):
+        data.append((f"{ALL_FLIGHTS[i][FLIGHT_AIRLINE]}", f"{ALL_FLIGHTS[i][FLIGHT_CODE]}", f"{ALL_FLIGHTS[i][FLIGHT_DEST]}", f"{ALL_FLIGHTS[i][FLIGHT_DEPT]}", f"${ALL_FLIGHTS[i][FLIGHT_BASE_PRICE]:.2f}"))
+
+    # Insert each flight onto the tree
+    for d in data:
+        tree.insert('', END, values = d)
+
+    # Use the grid method to put the tree table onto the window
+    tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+    # Add a scrollbar to the table of flights
+    scrollbar = ttk.Scrollbar(book_flight_frame, orient=VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.grid(row=1, column=3, sticky='nws')
+
+    flight_text_lbl = Label(book_flight_frame, text = "Flight Code:", font = ("Arial", 10))
+    flight_text_lbl.grid(row = 2, column = 1, sticky = "W")
+
+    flight_text_entry = Entry(book_flight_frame)
+    flight_text_entry.grid(row = 2, column = 1)
+
+    age_text_lbl = Label(book_flight_frame, text = "Age:", font = ("Arial", 10))
+    age_text_lbl.grid(row = 3, column = 1, sticky = "W")
+
+    age_text_entry = Entry(book_flight_frame)
+    age_text_entry.grid(row = 3, column = 1)
+
+    continue_btn = Button(book_flight_frame, text = "Continue", command = lambda:create_ticket(flight_text_entry.get(), age_text_entry.get()))
+    continue_btn.grid(row = 4, column = 1)
+
 def main_frame():
     '''Main frame of the program'''
-    
+    global main_frame
     # Clear any existing frame from the window before starting to create the main frame
     clear_screen()
 
@@ -185,7 +377,7 @@ def main_frame():
     subheader_text_lbl = Label(main_frame, text = "What would you like to do?", font = ("Arial", 12))
     subheader_text_lbl.grid(row = 1, column = 1, sticky = "NEWS")
 
-    book_flight_btn = Button(main_frame, text = "Book Flight")
+    book_flight_btn = Button(main_frame, text = "Book Flight", command = book_flight)
     book_flight_btn.grid(row = 2, column = 1, sticky = "WE")
 
     show_tickets_btn = Button(main_frame, text = "Show Tickets")
@@ -200,20 +392,6 @@ def main_frame():
     cancel_order_btn = Button(main_frame, text = "Cancel Order")
     cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
 
-def display_available_flights():
-    '''Display a list of flights on the screen for the user to book.'''
-
-    clear_screen()
-    pass
-    """
-    # Create column headings
-    print("Airline            | Code  | Destination                            | Date/Time           | Price")
-    print("-------------------|-------|----------------------------------------|---------------------|---------")
-
-    # Display each flight
-    for flight in flights:
-        flight.display_flight()
-    """
 
 # List to store each flight as an object
 flights = []
@@ -252,5 +430,7 @@ email_entry.grid(row = 4, column = 1, sticky = "WE")
 
 email_btn = Button(login_frame, text = "Continue", font = ("Arial", 9), command = main_frame)
 email_btn.grid(row = 5, column = 1)
+
+user = User("Joshua", "joshua@gmail.com")
 
 root.mainloop()
