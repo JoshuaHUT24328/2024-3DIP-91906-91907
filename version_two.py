@@ -1,4 +1,4 @@
-# Date: 02/08/2024
+# Date: 04/08/2024
 # Author: Joshua Hutchings
 # Version: 2
 # Purpose: Create a program that allows the user to book a plane flight
@@ -143,7 +143,8 @@ class Flight:
         return Ticket(self.airline, self.flight_code, self.destination, self.destination_airport, self.destination_airport_code, self.estimated_departure, age_type, self.base_price)
 
 class Ticket:
-    def __init__(self, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, age_type, base_price):
+    def __init__(self, holder_name, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, age_type, base_price):
+        self.holder_name = holder_name
         self.airline = airline
         self.flight_code = flight_code
         self.destination = destination
@@ -203,17 +204,17 @@ class User:
         else:
             # String to store the output showing information about a ticket
             output_str = f"Summary of tickets ordered by {self.name} ({self.email})\n"
-            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
+            output_str += "---------------------------------------------------------------------------------------------------------------------------------------------\n"
 
             # Create column headings
-            output_str += "#  | Airline            | Code  | Destination                            | Type   | Date/Time           | Price \n"
-            output_str += "---|--------------------|-------|----------------------------------------|--------|---------------------|--------\n"
+            output_str += "#  | Name                      | Airline            | Code  | Destination                            | Type   | Date/Time           | Price \n"
+            output_str += "---|---------------------------|--------------------|-------|----------------------------------------|--------|---------------------|--------\n"
             
             for user_ticket in self.tickets:
                 # Display each ticket in the user's order
-                output_str += (f"{self.tickets.index(user_ticket) + 1: <2} | {user_ticket.airline: <18} | {user_ticket.flight_code: <5} | {user_ticket.destination_airport: <38} | {str(user_ticket.age_type): <6} | {str(user_ticket.estimated_departure): <19} | ${user_ticket.price:.2f}\n")
+                output_str += (f"{self.tickets.index(user_ticket) + 1: <2} | {user_ticket.holder_name: <25} | {user_ticket.airline: <18} | {user_ticket.flight_code: <5} | {user_ticket.destination_airport: <38} | {str(user_ticket.age_type): <6} | {str(user_ticket.estimated_departure): <19} | ${user_ticket.price:.2f}\n")
 
-            output_str += "-----------------------------------------------------------------------------------------------------------------\n"
+            output_str += "---------------------------------------------------------------------------------------------------------------------------------------------\n"
 
             # Display the total price of the user's order
             output_str += f"Total: ${self.calculate_total_price():.2f}"
@@ -237,8 +238,13 @@ def clear_screen():
         login_frame.destroy()
     except:
         pass
+        
+    try:
+        main_frame.destroy()
+    except:
+        pass
 
-def create_ticket(flight_code, age):
+def create_ticket(flight_code, age, holder_name):
     
     # Check that user has entered the code for a flight that exists
     flight_exists = False
@@ -256,8 +262,6 @@ def create_ticket(flight_code, age):
     if flight_exists == False:
         messagebox.showinfo("Error", "Please enter a flight code that exists")
         return None
-    else:
-        user_chosen_flight = True
 
     age = int(age)
     age_type = StringVar()
@@ -282,14 +286,24 @@ def create_ticket(flight_code, age):
         messagebox.showinfo("Error", "Please enter a real age.")
         return None
 
-    ticket = Ticket(chosen_flight.airline, chosen_flight.flight_code, chosen_flight.destination, chosen_flight.destination_airport, chosen_flight.destination_airport_code, chosen_flight.estimated_departure, age_type, chosen_flight.base_price)
+    ticket = Ticket(holder_name, chosen_flight.airline, chosen_flight.flight_code, chosen_flight.destination, chosen_flight.destination_airport, chosen_flight.destination_airport_code, chosen_flight.estimated_departure, age_type, chosen_flight.base_price)
     user.add_ticket(ticket)
-    messagebox.showinfo("Confirmation", "Ticket added to order")
-    print(user.tickets)
 
-def book_flight():
-    #clear_screen()
-    main_frame.destroy()
+    if age_type == "Child":
+        messagebox.showinfo("Discount information", f"This ticket qualifies for a Child's discount of {CHILD_TICKET_PRICE * 100}%, bringing the price down to {ticket.price}.")
+        messagebox.showinfo("Confirmation", f"Child's Ticket added to order.")
+    elif age_type == "Senior":
+        messagebox.showinfo("Discount information", f"This ticket qualifies for a Senior's discount of {SENIOR_TICKET_PRICE * 100}%, bringing the price down to {ticket.price}.")
+        messagebox.showinfo("Confirmation", f"Child's Ticket added to order.")
+    else:
+        messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
+
+    book_flight_frame.destroy()
+    main_screen()
+
+def book_flight_screen():
+    clear_screen()
+    global book_flight_frame
 
     book_flight_frame = Frame(root)
     book_flight_frame.pack(side = "top", fill = "both", expand = True)
@@ -299,9 +313,6 @@ def book_flight():
     book_flight_frame.rowconfigure(0, weight = 2, uniform = 'a')
     book_flight_frame.rowconfigure(1, weight = 10, uniform = 'a')
     book_flight_frame.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
-    
-    header_text_lbl = Label(book_flight_frame, text = "Book Flight", font = ("Arial", 20))
-    header_text_lbl.grid(row = 0, column = 0, columnspan = 3)
 
     # Columns for table of flights
     column = ("Airline", "Code", "Destination", "Date/Time", "Price")
@@ -347,11 +358,247 @@ def book_flight():
 
     age_text_entry = Entry(book_flight_frame)
     age_text_entry.grid(row = 3, column = 1)
+    
+    name_text_lbl = Label(book_flight_frame, text = "Ticket holder Name:", font = ("Arial", 10))
+    name_text_lbl.grid(row = 4, column = 1, sticky = "W")
 
-    continue_btn = Button(book_flight_frame, text = "Continue", command = lambda:create_ticket(flight_text_entry.get(), age_text_entry.get()))
-    continue_btn.grid(row = 4, column = 1)
+    name_text_entry = Entry(book_flight_frame)
+    name_text_entry.grid(row = 4, column = 1)
 
-def main_frame():
+    continue_btn = Button(book_flight_frame, text = "Continue", command = lambda:create_ticket(flight_text_entry.get(), age_text_entry.get(), name_text_entry.get()))
+    continue_btn.grid(row = 5, column = 1)
+
+def display_tickets_screen():
+    '''Screen to display the user's tickets'''
+
+    global display_tickets_frame
+    main_frame.destroy()
+
+    display_tickets_frame = Frame(root)
+    display_tickets_frame.pack(side = "top", fill = "both", expand = True)
+
+    display_tickets_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    display_tickets_frame.columnconfigure(1, weight = 7, uniform = 'a')
+    display_tickets_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    display_tickets_frame.rowconfigure(1, weight = 10, uniform = 'a')
+    display_tickets_frame.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+    def exit_screen():
+        display_tickets_frame.destroy()
+        main_screen()
+
+    # Columns for table of flights
+    column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+    # Create a Treeview widget for the table
+    tree = ttk.Treeview(display_tickets_frame, columns = column, show = "headings")
+
+    # Enter the headings for each column in the table
+    tree.heading('#', text='#')
+    tree.heading('Name', text='Name')
+    tree.heading('Airline', text='Airline')
+    tree.heading('Code', text='Code')
+    tree.heading('Destination', text='Destination')
+    tree.heading('Type', text='Type')
+    tree.heading('Date/Time', text='Date/Time')
+    tree.heading('Price', text='Price')
+
+    # List to store each flight/row of the table in (in tuple format)
+    data = []
+
+    # Iterate through each flight in the list of all flights and add a tuple for each
+    # flight to the data list.
+    for i in range(len(user.tickets)):
+        data.append((f"{i + 1}", f"{user.tickets[i].holder_name}", f"{user.tickets[i].airline}", f"{user.tickets[i].flight_code}", f"{user.tickets[i].destination}", f"{user.tickets[i].age_type}", f"{user.tickets[i].estimated_departure}", f"${user.tickets[i].price:.2f}"))
+
+    # Insert each flight onto the tree
+    for d in data:
+        tree.insert('', END, values = d)
+
+    # Use the grid method to put the tree table onto the window
+    tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+    # Add a scrollbar to the table of flights
+    scrollbar = ttk.Scrollbar(display_tickets_frame, orient=VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.grid(row=1, column=3, sticky='nws')
+
+    close_btn = Button(display_tickets_frame, text = "Close", command = exit_screen)
+    close_btn.grid(row = 3, column = 1)
+
+def remove_tickets_screen():
+    '''Screen to allow the user to remove tickets from their order'''
+    # If the user's order is empty, tell them this and return to the main menu
+    if len(user.tickets) == 0:
+        messagebox.showinfo("Error", "You currently have no tickets in your order so none can be removed.")
+        return None
+
+    global remove_tickets_frame
+    main_frame.destroy()
+
+    remove_tickets_frame = Frame(root)
+    remove_tickets_frame.pack(side = "top", fill = "both", expand = True)
+
+    remove_tickets_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    remove_tickets_frame.columnconfigure(1, weight = 7, uniform = 'a')
+    remove_tickets_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    remove_tickets_frame.rowconfigure(1, weight = 10, uniform = 'a')
+    remove_tickets_frame.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+    def remove_ticket():
+        '''Remove ticket from order'''
+
+        ticket_number = int(remove_text_entry.get())
+        if ticket_number < 1 or ticket_number > len(user.tickets):
+            messagebox.showinfo("Error", "Please enter a number which corresponds to a ticket in your order.")
+            return None
+        
+        user.remove_ticket(i - 1)
+        messagebox.showinfo("Ticket removed", "Ticket has been removed from your order.")
+
+        remove_tickets_frame.destroy()
+        main_screen()
+
+    # Columns for table of flights
+    column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+    # Create a Treeview widget for the table
+    tree = ttk.Treeview(remove_tickets_frame, columns = column, show = "headings")
+
+    # Enter the headings for each column in the table
+    tree.heading('#', text='#')
+    tree.heading('Name', text='Name')
+    tree.heading('Airline', text='Airline')
+    tree.heading('Code', text='Code')
+    tree.heading('Destination', text='Destination')
+    tree.heading('Type', text='Type')
+    tree.heading('Date/Time', text='Date/Time')
+    tree.heading('Price', text='Price')
+
+    # List to store each flight/row of the table in (in tuple format)
+    data = []
+
+    # Iterate through each flight in the list of all flights and add a tuple for each
+    # flight to the data list.
+    for i in range(len(user.tickets)):
+        data.append((f"{i + 1}", f"{user.tickets[i].holder_name}", f"{user.tickets[i].airline}", f"{user.tickets[i].flight_code}", f"{user.tickets[i].destination}", f"{user.tickets[i].age_type}", f"{user.tickets[i].estimated_departure}", f"${user.tickets[i].price:.2f}"))
+
+    # Insert each flight onto the tree
+    for d in data:
+        tree.insert('', END, values = d)
+
+    # Use the grid method to put the tree table onto the window
+    tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+    # Add a scrollbar to the table of flights
+    scrollbar = ttk.Scrollbar(remove_tickets_frame, orient=VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.grid(row=1, column=3, sticky='nws')
+
+    remove_text_lbl = Label(remove_tickets_frame, text = "Ticket number: ", font = ("Arial", 10))
+    remove_text_lbl.grid(row = 3, column = 1, sticky = "W")
+
+    remove_text_entry = Entry(remove_tickets_frame)
+    remove_text_entry.grid(row = 3, column = 1)
+
+    remove_btn = Button(remove_tickets_frame, text = "Remove", command = remove_ticket)
+    remove_btn.grid(row = 4, column = 1)
+
+def farewell_user():
+    '''Farewell the user and quit the program'''
+
+    messagebox.showinfo("Farewell", "Have a nice day!")
+    quit()
+
+def finish_order_screen():
+    '''Screen for when the user is finished their order'''
+
+    # If the user's order is empty, tell them this and return to the main menu
+    if len(user.tickets) == 0:
+        messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
+        return None
+    
+    global finish_order_frame
+    main_frame.destroy()
+
+    finish_order_frame = Frame(root)
+    finish_order_frame.pack(side = "top", fill = "both", expand = True)
+
+    finish_order_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    finish_order_frame.columnconfigure(1, weight = 7, uniform = 'a')
+    finish_order_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    finish_order_frame.rowconfigure(1, weight = 10, uniform = 'a')
+    finish_order_frame.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+    def continue_command():
+        response = messagebox.askquestion("Confirmation", "Would you like to make another order?")
+        if response == "yes":
+            finish_order_frame.destroy()
+            login_screen()
+        else:
+            farewell_user()
+
+    user_info_text_lbl = Label(finish_order_frame, text = f"Summary of Tickets by: {user.name} ({user.email})")
+    user_info_text_lbl.grid(row = 0, column = 1)
+
+    # Columns for table of flights
+    column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+    # Create a Treeview widget for the table
+    tree = ttk.Treeview(finish_order_frame, columns = column, show = "headings")
+
+    # Enter the headings for each column in the table
+    tree.heading('#', text='#')
+    tree.heading('Name', text='Name')
+    tree.heading('Airline', text='Airline')
+    tree.heading('Code', text='Code')
+    tree.heading('Destination', text='Destination')
+    tree.heading('Type', text='Type')
+    tree.heading('Date/Time', text='Date/Time')
+    tree.heading('Price', text='Price')
+
+    # List to store each flight/row of the table in (in tuple format)
+    data = []
+
+    # Iterate through each flight in the list of all flights and add a tuple for each
+    # flight to the data list.
+    for i in range(len(user.tickets)):
+        data.append((f"{i + 1}", f"{user.tickets[i].holder_name}", f"{user.tickets[i].airline}", f"{user.tickets[i].flight_code}", f"{user.tickets[i].destination}", f"{user.tickets[i].age_type}", f"{user.tickets[i].estimated_departure}", f"${user.tickets[i].price:.2f}"))
+
+    # Insert each flight onto the tree
+    for d in data:
+        tree.insert('', END, values = d)
+
+    # Use the grid method to put the tree table onto the window
+    tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+    # Add a scrollbar to the table of flights
+    scrollbar = ttk.Scrollbar(finish_order_frame, orient=VERTICAL, command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.grid(row=1, column=3, sticky='nws')
+
+    total_price_lbl = Label(finish_order_frame, text = f"Total Price: ${user.calculate_total_price()}")
+    total_price_lbl.grid(row = 3, column = 0)
+
+    continue_btn = Button(finish_order_frame, text = "Continue", command = continue_command)
+    continue_btn.grid(row = 3, column = 1)
+
+    # Write user's ticket information to an external file
+    with open("orders.txt", "a") as file:
+        file.write(f"\nName: {user.name}\n")
+        file.write(f"Email: {user.email}\n")
+        file.write(f"{user.display_tickets()}\n")
+
+def cancel_order():
+    '''Verify whether the user wants to cancel their order and quit and act accordingly'''
+
+    response = messagebox.askquestion("Confirmation", "Are you sure you would like to cancel your order and quit the program?")
+    if response == "yes":
+        farewell_user()
+    else:
+        return None
+
+def main_screen():
     '''Main frame of the program'''
     global main_frame
     # Clear any existing frame from the window before starting to create the main frame
@@ -375,22 +622,22 @@ def main_frame():
     subheader_text_lbl = Label(main_frame, text = "What would you like to do?", font = ("Arial", 12))
     subheader_text_lbl.grid(row = 1, column = 1, sticky = "NEWS")
 
-    book_flight_btn = Button(main_frame, text = "Book Flight", command = book_flight)
+    book_flight_btn = Button(main_frame, text = "Book Flight", command = book_flight_screen)
     book_flight_btn.grid(row = 2, column = 1, sticky = "WE")
 
-    show_tickets_btn = Button(main_frame, text = "Show Tickets")
+    show_tickets_btn = Button(main_frame, text = "Show Tickets", command = display_tickets_screen)
     show_tickets_btn.grid(row = 3, column = 1, sticky = "WE")
     
-    remove_ticket_btn = Button(main_frame, text = "Remove ticket from Order")
+    remove_ticket_btn = Button(main_frame, text = "Remove ticket from Order", command = remove_tickets_screen)
     remove_ticket_btn.grid(row = 4, column = 1, sticky = "WE")
     
-    finish_order_btn = Button(main_frame, text = "Finish Order")
+    finish_order_btn = Button(main_frame, text = "Finish Order", command = finish_order_screen)
     finish_order_btn.grid(row = 5, column = 1, sticky = "WE")
     
-    cancel_order_btn = Button(main_frame, text = "Cancel Order")
+    cancel_order_btn = Button(main_frame, text = "Cancel Order", command = cancel_order)
     cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
 
-def user_login(user_name, user_email):
+def user_login_screen(user_name, user_email):
     '''Manage the user login part of the program'''
     global user
 
@@ -478,8 +725,8 @@ def login_screen():
 
         # If the program reaches this point, the user's name and email are valid.
         # Thus, the program can continue to the main part
-        main_frame()
         user = User(user_name, user_email)
+        main_screen()
 
     header_lbl = Label(login_frame, text = "Welcome to the Flight Booking App!", font = ("Arial", 20))
     header_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
@@ -496,7 +743,6 @@ def login_screen():
     email_entry = Entry(login_frame)
     email_entry.grid(row = 4, column = 1, sticky = "WE")
 
-    user_input_valid = False
     login_btn = Button(login_frame, text = "Continue", font = ("Arial", 9), command = user_login)
     login_btn.grid(row = 5, column = 1)
 
@@ -509,7 +755,5 @@ for flight in ALL_FLIGHTS:
     flights.append(f)
 
 login_screen()
-
-user = User("Joshua", "joshua@gmail.com")
 
 root.mainloop()
