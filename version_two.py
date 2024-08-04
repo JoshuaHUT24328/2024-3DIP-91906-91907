@@ -1,4 +1,4 @@
-# Date: 01/08/2024
+# Date: 02/08/2024
 # Author: Joshua Hutchings
 # Version: 2
 # Purpose: Create a program that allows the user to book a plane flight
@@ -233,7 +233,10 @@ def clear_screen():
     """Clear the window to create a 'clean canvas' for a new frame"""
 
     # Destroy login frame to create a 'clean canvas' for the Main frame.
-    login_frame.destroy()
+    try:
+        login_frame.destroy()
+    except:
+        pass
 
 def create_ticket(flight_code, age):
     
@@ -305,11 +308,6 @@ def book_flight():
 
     # Create a Treeview widget for the table
     tree = ttk.Treeview(book_flight_frame, columns = column, show = "headings")
-    tree.column("Airline", minwidth=130, width = 130, stretch=NO)
-    tree.column("Code", minwidth=50, width = 70, stretch=NO)
-    tree.column("Destination", minwidth=50, width = 70, stretch=NO)
-    tree.column("Code", minwidth=50, width = 70, stretch=NO)
-    tree.column("Code", minwidth=50, width = 70, stretch=NO)
 
     # Enter the headings for each column in the table
     tree.heading('Airline', text='Airline')
@@ -392,6 +390,115 @@ def main_frame():
     cancel_order_btn = Button(main_frame, text = "Cancel Order")
     cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
 
+def user_login(user_name, user_email):
+    '''Manage the user login part of the program'''
+    global user
+
+    # Validate user's name and email
+    # Used to help validate user input
+    user_entered_valid_email = False
+
+    if len(user_name) == 0:
+        messagebox.showinfo("Error", "Please enter a name.")
+        return None
+
+    for character in user_name:
+        if character.isalpha() or character in ACCEPTED_SPECIAL_CHARACTERS:
+            continue
+        else:
+            messagebox.showinfo("Error", "Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
+            return None
+    
+    # Iterate through each character in user's email address to check that there exists an '@'
+    # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
+    # address, characters that are not allowed in a name, it becomes more difficult to validate user input
+    # for email addresses. However, ALL email addresses must have an @ symbol, so an email address that
+    # does not must be invalid.
+    for character in user_email:
+        if character == '@':
+            user_entered_valid_email = True
+            break
+
+    if user_entered_valid_email == False:
+        messagebox.showinfo("Error", "Please enter a valid email address.")
+        return None
+
+    user = User(user_name, user_email)
+
+def login_screen():
+    global login_frame
+
+    # Login frame
+    login_frame = Frame(root)
+    login_frame.pack(side = "top", fill = "both", expand = True)
+
+    # Configure the rows and columns to be used in this frame. Doing this manually means that I can
+    # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
+    # fix the uniformity problem that arises with the grid method.
+    login_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
+    login_frame.columnconfigure(1, weight = 3, uniform = 'a')
+    login_frame.rowconfigure(0, weight = 2, uniform = 'a')
+    login_frame.rowconfigure((1, 2, 3, 4, 5), weight = 1, uniform = 'a')
+
+    def user_login():
+        '''Manage the user login part of the program'''
+        global user
+
+        user_name = name_entry.get()
+        user_email = email_entry.get()
+
+        # Validate user's name and email
+        # Used to help validate user input
+        user_entered_valid_email = False
+
+        if len(user_name) == 0:
+            messagebox.showinfo("Error", "Please enter a name.")
+            return None
+
+        for character in user_name:
+            if character.isalpha() or character in ACCEPTED_SPECIAL_CHARACTERS:
+                continue
+            else:
+                messagebox.showinfo("Error", "Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
+                return None
+
+        # Iterate through each character in user's email address to check that there exists an '@'
+        # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
+        # address, characters that are not allowed in a name, it becomes more difficult to validate user input
+        # for email addresses. However, ALL email addresses must have an @ symbol, so an email address that
+        # does not must be invalid.
+        for character in user_email:
+            if character == '@':
+                user_entered_valid_email = True
+                break
+
+        if user_entered_valid_email == False:
+            messagebox.showinfo("Error", "Please enter a valid email address.")
+            return None
+
+        # If the program reaches this point, the user's name and email are valid.
+        # Thus, the program can continue to the main part
+        main_frame()
+        user = User(user_name, user_email)
+
+    header_lbl = Label(login_frame, text = "Welcome to the Flight Booking App!", font = ("Arial", 20))
+    header_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
+
+    name_lbl = Label(login_frame, text = "Please enter your name", font = ("Arial", 12))
+    name_lbl.grid(row = 1, column = 1, sticky = "WENS")
+
+    name_entry = Entry(login_frame)
+    name_entry.grid(row = 2, column = 1, sticky = "WE")
+
+    email_lbl = Label(login_frame, text = "Please enter your email", font = ("Arial", 12))
+    email_lbl.grid(row = 3, column = 1, sticky = "WENS")
+
+    email_entry = Entry(login_frame)
+    email_entry.grid(row = 4, column = 1, sticky = "WE")
+
+    user_input_valid = False
+    login_btn = Button(login_frame, text = "Continue", font = ("Arial", 9), command = user_login)
+    login_btn.grid(row = 5, column = 1)
 
 # List to store each flight as an object
 flights = []
@@ -401,35 +508,7 @@ for flight in ALL_FLIGHTS:
 
     flights.append(f)
 
-# Login frame
-login_frame = Frame(root)
-login_frame.pack(side = "top", fill = "both", expand = True)
-
-# Configure the rows and columns to be used in this frame. Doing this manually means that I can
-# adjust the relative sizes of each column/row (from setting the weight). It also means that I can
-# fix the uniformity problem that arises with the grid method.
-login_frame.columnconfigure((0, 2), weight = 2, uniform = 'a')
-login_frame.columnconfigure(1, weight = 3, uniform = 'a')
-login_frame.rowconfigure(0, weight = 2, uniform = 'a')
-login_frame.rowconfigure((1, 2, 3, 4, 5), weight = 1, uniform = 'a')
-
-header_lbl = Label(login_frame, text = "Welcome to the Flight Booking App!", font = ("Arial", 20))
-header_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
-
-name_lbl = Label(login_frame, text = "Please enter your name", font = ("Arial", 12))
-name_lbl.grid(row = 1, column = 1, sticky = "WENS")
-
-name_entry = Entry(login_frame)
-name_entry.grid(row = 2, column = 1, sticky = "WE")
-
-email_lbl = Label(login_frame, text = "Please enter your email", font = ("Arial", 12))
-email_lbl.grid(row = 3, column = 1, sticky = "WENS")
-
-email_entry = Entry(login_frame)
-email_entry.grid(row = 4, column = 1, sticky = "WE")
-
-email_btn = Button(login_frame, text = "Continue", font = ("Arial", 9), command = main_frame)
-email_btn.grid(row = 5, column = 1)
+login_screen()
 
 user = User("Joshua", "joshua@gmail.com")
 
