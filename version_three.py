@@ -162,21 +162,36 @@ class App(Tk):
 
         # Hide the frame of the current screen (though check that it actually
         # is defined first to avoid any unexpected crashes)
-        if self.current_frame:
-            self.current_frame.grid_forget()
+        #if self.current_frame:
+        #    self.current_frame.grid_forget()
 
         if frame_index == App.LOGIN_SCREEN:
+            if self.current_frame:
+                self.current_frame.grid_forget()
             self.current_frame = LoginScreen(self)
         elif frame_index == App.MAIN_MENU_SCREEN:
+            
+            if self.current_frame:
+                self.current_frame.grid_forget()
             self.current_frame = MainMenuScreen(self)
         elif frame_index == App.BOOK_FLIGHTS_SCREEN:
+            
+            if self.current_frame:
+                self.current_frame.grid_forget()
             self.current_frame = BookFlightsScreen(self)
         elif frame_index == App.VIEW_TICKETS_SCREEN:
             self.current_frame = ViewTicketsScreen(self)
         elif frame_index == App.REMOVE_TICKETS_SCREEN:
+            if self.current_frame:
+                self.current_frame.grid_forget()
             self.current_frame = RemoveTicketsScreen(self)
         elif frame_index == App.FINISH_ORDER_SCREEN:
-            self.current_frame = FinishOrderScreen(self)
+            if len(app.user.tickets) == 0:
+                messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
+            else:
+                if self.current_frame:
+                    self.current_frame.grid_forget()
+                self.current_frame = FinishOrderScreen(self)
 
         #self.current_frame = self.frames[frame_index]
         # Use the .pack() method to put the new frame on the screen where it is fullscreen/takes up the full window.
@@ -556,6 +571,14 @@ class RemoveTicketsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
         
+        # If the user's order is empty, tell them this and return to the main menu
+        # Note that this should be done before removing the main menu frame, so that the
+        # user does not feel like anything has changed, apart from the messagebox appearing.
+
+        if len(app.user.tickets) == 0:
+            messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
+            app.show_frame(App.MAIN_MENU_SCREEN)
+
         # Configure the rows and columns of the ticket removal screen. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
         # fix the uniformity problem that arises with the grid method.
@@ -564,15 +587,6 @@ class RemoveTicketsScreen(Frame):
         self.rowconfigure(0, weight = 2, uniform = 'a')
         self.rowconfigure(1, weight = 10, uniform = 'a')
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
-
-        # If the user's order is empty, tell them this and return to the main menu
-        # Note that this should be done before removing the main menu frame, so that the
-        # user does not feel like anything has changed, apart from the messagebox appearing.
-
-        if len(app.user.tickets) == 0:
-            self.no_tickets_message()
-            app.show_frame(App.MAIN_MENU_SCREEN)
-            return None
 
         # Columns for table of tickets
         column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
@@ -622,11 +636,6 @@ class RemoveTicketsScreen(Frame):
         # Button for when user has entered their ticket number.
         remove_btn = Button(self, text = "Remove", command = lambda: self.remove_users_ticket(int(remove_text_entry.get())))
         remove_btn.grid(row = 4, column = 1)
-
-    def no_tickets_message(self):
-        messagebox.showinfo("Error", "You currently have no tickets in your order so none can be removed.")
-        self.master.show_frame(App.MAIN_MENU_SCREEN)
-        #return
 
     def remove_users_ticket(self, ticket_to_remove):
         '''Remove ticket from order'''
@@ -729,7 +738,6 @@ class FinishOrderScreen(Frame):
         else:
             # If the user does not want to make another order, farewell them.
             app.farewell_user()
-
 
 # Setup main window
 app = App()
