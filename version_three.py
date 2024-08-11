@@ -141,13 +141,17 @@ class App(Tk):
         self.geometry("700x400")
         self.frames = []
         self.current_frame = None       # Initially, there is no frame, so hence initialise this to None
+        self.rowconfigure(0, weight = 1, uniform = 'a')
+        self.columnconfigure(0, weight = 1, uniform = 'a')
 
-        # Initialize all frames
+        # Initialize frames and/or fill the list of None objects as
+        # placeholders for frames that will come later.
         self.frames.append(LoginScreen(self))
         self.frames.append(MainMenuScreen(self))
-        self.frames.append(BookFlightsScreen(self))
-        self.frames.append(ViewTicketsScreen(self))
-        #self.frames.append(SettingsScreen(self))
+        self.frames.append(None)
+        self.frames.append(None)
+        self.frames.append(None)
+        self.frames.append(None)
 
         # Show the login screen frame since this will be what the user
         # should go on once they first start the program.
@@ -159,12 +163,34 @@ class App(Tk):
         # Hide the frame of the current screen (though check that it actually
         # is defined first to avoid any unexpected crashes)
         if self.current_frame:
-            self.current_frame.pack_forget()
+            self.current_frame.grid_forget()
 
-        # Set the current frame to the frame which has been specified
-        self.current_frame = self.frames[frame_index]
+        if frame_index == App.LOGIN_SCREEN:
+            self.current_frame = LoginScreen(self)
+        elif frame_index == App.MAIN_MENU_SCREEN:
+            self.current_frame = MainMenuScreen(self)
+        elif frame_index == App.BOOK_FLIGHTS_SCREEN:
+            self.current_frame = BookFlightsScreen(self)
+        elif frame_index == App.VIEW_TICKETS_SCREEN:
+            self.current_frame = ViewTicketsScreen(self)
+        elif frame_index == App.REMOVE_TICKETS_SCREEN:
+            self.current_frame = RemoveTicketsScreen(self)
+        elif frame_index == App.FINISH_ORDER_SCREEN:
+            self.current_frame = FinishOrderScreen(self)
+
+        #self.current_frame = self.frames[frame_index]
         # Use the .pack() method to put the new frame on the screen where it is fullscreen/takes up the full window.
-        self.current_frame.pack(side="top", fill="both", expand=True)
+        self.current_frame.grid(row = 0, column = 0, sticky = "NEWS")
+
+    def create_frame(self, frame_index):
+        if frame_index == App.BOOK_FLIGHTS_SCREEN:
+            return BookFlightsScreen(self)
+        elif frame_index == App.VIEW_TICKETS_SCREEN:
+            return ViewTicketsScreen(self)
+        elif frame_index == App.REMOVE_TICKETS_SCREEN:
+            return RemoveTicketsScreen(self)
+        elif frame_index == App.FINISH_ORDER_SCREEN:
+            return FinishOrderScreen(self)
 
     def quit_program(self):
         '''Verify whether the user wants to cancel their order and quit and act accordingly'''
@@ -261,6 +287,7 @@ class LoginScreen(Frame):
         # If the program reaches this point, the user's name and email are valid, since they have passed all validation.
         # Thus, the program can instantiate the User object and continue to the main part of the program.
         app.user = User(user_name, user_email)
+        #app.user_created()
 
         # Destroy the login frame and go to the main frame.
         app.show_frame(App.MAIN_MENU_SCREEN)
@@ -454,6 +481,7 @@ class BookFlightsScreen(Frame):
         else:
             messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
 
+        BookFlightsScreen.grid_remove(self)
         # After having created a ticket, the user should return back to the main menu.
         # Thus, remove the booking flight frame with .destroy() and call the main_screen() function.
         app.show_frame(App.MAIN_MENU_SCREEN)
@@ -461,6 +489,7 @@ class BookFlightsScreen(Frame):
 class ViewTicketsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
+        self.master = master
 
         # Configure the rows and columns for widgets on this frame. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
@@ -471,6 +500,13 @@ class ViewTicketsScreen(Frame):
         self.rowconfigure(1, weight = 10, uniform = 'a')
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
+        # Create the widgets for this window, though only if a User object has been instantiated.
+        # Trying to create the widgets without the User object being instantiated can cause issues.
+        
+        self.create_widgets()
+
+    def create_widgets(self):
+        '''Create the widgets for this windows'''
         # Columns for table of tickets
         column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
 
@@ -492,8 +528,8 @@ class ViewTicketsScreen(Frame):
 
         # Iterate through each ticket of the user's tickets and add a tuple for each
         # ticket to the data list.
-        for i in range(len(app.user.tickets)):
-            data.append((f"{i + 1}", f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
+        for i in range(len(self.master.user.tickets)):
+            data.append((f"{i + 1}", f"{self.master.user.tickets[i].holder_name}", f"{self.master.user.tickets[i].airline}", f"{self.master.user.tickets[i].flight_code}", f"{self.master.user.tickets[i].destination}", f"{self.master.user.tickets[i].age_type}", f"{self.master.user.tickets[i].estimated_departure}", f"${self.master.user.tickets[i].price:.2f}"))
 
         # Insert each ticket onto the tree
         for d in data:
@@ -515,6 +551,185 @@ class ViewTicketsScreen(Frame):
         '''Allow the user to return back to the main menu'''
         
         app.show_frame(App.MAIN_MENU_SCREEN)
+
+class RemoveTicketsScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        
+        # Configure the rows and columns of the ticket removal screen. Doing this manually means that I can
+        # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
+        # fix the uniformity problem that arises with the grid method.
+        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
+        self.columnconfigure(1, weight = 7, uniform = 'a')
+        self.rowconfigure(0, weight = 2, uniform = 'a')
+        self.rowconfigure(1, weight = 10, uniform = 'a')
+        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+        # If the user's order is empty, tell them this and return to the main menu
+        # Note that this should be done before removing the main menu frame, so that the
+        # user does not feel like anything has changed, apart from the messagebox appearing.
+
+        if len(app.user.tickets) == 0:
+            self.no_tickets_message()
+            app.show_frame(App.MAIN_MENU_SCREEN)
+            return None
+
+        # Columns for table of tickets
+        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+        # Enter the headings for each column in the table
+        tree = ttk.Treeview(self, columns = column, show = "headings")
+        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")    # Create a Treeview widget for the table
+        tree.heading('#', text='#')
+        tree.heading('Name', text='Name')
+        tree.heading('Airline', text='Airline')
+
+        tree.heading('Code', text='Code')
+        tree.heading('Destination', text='Destination')
+
+        tree.heading('Type', text='Type')
+        tree.heading('Date/Time', text='Date/Time')
+        tree.heading('Price', text='Price')
+        # List to store each ticket/row of the table in (in tuple format)
+        data = []
+        # Iterate through each ticket in the user's tickets and add a tuple for each
+
+        # ticket to the data list.
+        for i in range(len(app.user.tickets)):
+            data.append((f"{i + 1}", f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
+
+        # Insert each ticket onto the tree
+        for d in data:
+            tree.insert('', END, values = d)
+
+        # Use the grid method to put the tree table onto the window
+        tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+        # Add a scrollbar to the table of tickets
+
+        scrollbar = ttk.Scrollbar(self, orient=VERTICAL, command=tree.yview)
+        tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=3, sticky='nws')
+
+        # Label to tell the user to remove their ticket.
+        remove_text_lbl = Label(self, text = "Ticket number: ", font = ("Arial", 10))
+        remove_text_lbl.grid(row = 3, column = 1, sticky = "W")
+
+        # Entry box for user to enter the ticket number.
+        remove_text_entry = Entry(self)
+        remove_text_entry.grid(row = 3, column = 1)
+
+        # Button for when user has entered their ticket number.
+        remove_btn = Button(self, text = "Remove", command = lambda: self.remove_users_ticket(int(remove_text_entry.get())))
+        remove_btn.grid(row = 4, column = 1)
+
+    def no_tickets_message(self):
+        messagebox.showinfo("Error", "You currently have no tickets in your order so none can be removed.")
+        self.master.show_frame(App.MAIN_MENU_SCREEN)
+        #return
+
+    def remove_users_ticket(self, ticket_to_remove):
+        '''Remove ticket from order'''
+        
+        # Check that the number entered by the user corresponds to an actual ticket from their order. If not,
+        # tell them this and return None to exit the function (the remove_users_ticket() function).
+        if ticket_to_remove < 1 or ticket_to_remove > len(app.user.tickets):
+            messagebox.showinfo("Error", "Please enter a number which corresponds to a ticket in your order.")
+            return None
+        
+        # Remove the ticket specified by the user.
+        # Note that we must remove the (i - 1)th ticket, rather than the ith ticket, because
+        # the first ticket on the Treeview table has a number of 1, whereas the first ticket
+        # in the tickets list is 0.
+        app.user.remove_ticket(ticket_to_remove - 1)
+        messagebox.showinfo("Ticket removed", "Ticket has been removed from your order.")       # Display confirmation to the user.
+        app.show_frame(App.MAIN_MENU_SCREEN)
+
+class FinishOrderScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        # If the user's order is empty, tell them this and return None to exit the function.
+        if len(app.user.tickets) == 0:
+            messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
+            app.show_frame(App.MAIN_MENU_SCREEN)
+
+        # Configure the rows and columns for widgets. Doing this manually means that I can
+        # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
+        # fix the uniformity problem that arises with the grid method.
+        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
+        self.columnconfigure(1, weight = 7, uniform = 'a')
+        self.rowconfigure(0, weight = 2, uniform = 'a')
+        self.rowconfigure(1, weight = 10, uniform = 'a')
+        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+        # Label to display the user's name and email
+        user_info_text_lbl = Label(self, text = f"Summary of Tickets by: {app.user.name} ({app.user.email})")
+        user_info_text_lbl.grid(row = 0, column = 1)
+
+        # Columns for table of tickets
+        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+        # Create a Treeview widget for the table
+        tree = ttk.Treeview(self, columns = column, show = "headings")
+
+        # Enter the headings for each column in the table
+        tree.heading('#', text='#')
+        tree.heading('Name', text='Name')
+        tree.heading('Airline', text='Airline')
+        tree.heading('Code', text='Code')
+        tree.heading('Destination', text='Destination')
+        tree.heading('Type', text='Type')
+        tree.heading('Date/Time', text='Date/Time')
+        tree.heading('Price', text='Price')
+
+        # List to store each ticket/row of the table in (in tuple format)
+        data = []
+
+        # Iterate through each ticket in the user's order and add a tuple for each
+        # ticket to the data list.
+        for i in range(len(app.user.tickets)):
+            data.append((f"{i + 1}", f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
+
+        # Insert each ticket onto the tree
+        for d in data:
+            tree.insert('', END, values = d)
+
+        # Use the grid method to put the tree table onto the window
+        tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+        # Add a scrollbar to the table of tickets
+        scrollbar = ttk.Scrollbar(self, orient=VERTICAL, command=tree.yview)
+        tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=3, sticky='nws')
+
+        # Label to display the total price of the user's order
+        total_price_lbl = Label(self, text = f"Total Price: ${app.user.calculate_total_price()}")
+        total_price_lbl.grid(row = 3, column = 0)
+
+        # Button for when the user wants to move on, either to quit the program, or to make another order.
+        continue_btn = Button(self, text = "Continue", command = self.continue_command)
+        continue_btn.grid(row = 3, column = 1)
+
+        # Write user's ticket information to an external file
+        with open("orders.txt", "a") as file:
+            file.write(f"\nName: {app.user.name}\n")
+            file.write(f"Email: {app.user.email}\n")
+            file.write(f"{app.user.display_tickets()}\n")
+
+    def continue_command(self):
+        '''Respond to the user pressing the button'''
+
+        # Ask the user whether they want to make another order from a message box.
+        response = messagebox.askquestion("Confirmation", "Would you like to make another order?")
+        if response == "yes":
+            # If the user wants to make another order, remove the finish order frame and take them to the login screen
+            # with login_screen().
+            app.show_frame(App.LOGIN_SCREEN)
+        else:
+            # If the user does not want to make another order, farewell them.
+            app.farewell_user()
+
 
 # Setup main window
 app = App()
