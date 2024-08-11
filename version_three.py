@@ -123,8 +123,6 @@ class User:
 
 class App(Tk):
     # Class constant variables used to refer to each screen/frame in the program
-    # Each of these constants stores the index for a particular screen/frame
-    # in a list of frames (see the init method)
     LOGIN_SCREEN = 0
     MAIN_MENU_SCREEN = 1
     BOOK_FLIGHTS_SCREEN = 2
@@ -132,6 +130,9 @@ class App(Tk):
     REMOVE_TICKETS_SCREEN = 4
     FINISH_ORDER_SCREEN = 5
 
+    # Stores the User object when instantiated. This is so that
+    # it does not need to be made a global variable, but can
+    # still be accessed by everything that requires it.
     user = None
 
     def __init__(self):
@@ -139,19 +140,9 @@ class App(Tk):
         super().__init__()              # This is needed to properly initialise the Tk class properly
         self.title("Flight Booking App")
         self.geometry("700x400")
-        self.frames = []
         self.current_frame = None       # Initially, there is no frame, so hence initialise this to None
         self.rowconfigure(0, weight = 1, uniform = 'a')
         self.columnconfigure(0, weight = 1, uniform = 'a')
-
-        # Initialize frames and/or fill the list of None objects as
-        # placeholders for frames that will come later.
-        self.frames.append(LoginScreen(self))
-        self.frames.append(MainMenuScreen(self))
-        self.frames.append(None)
-        self.frames.append(None)
-        self.frames.append(None)
-        self.frames.append(None)
 
         # Show the login screen frame since this will be what the user
         # should go on once they first start the program.
@@ -160,52 +151,61 @@ class App(Tk):
     def show_frame(self, frame_index):
         '''Switch to the specified frame'''
 
-        # Hide the frame of the current screen (though check that it actually
-        # is defined first to avoid any unexpected crashes)
+        # Hide the frame of the current screen 
         #if self.current_frame:
         #    self.current_frame.grid_forget()
 
+        # Check which frame index has been passed to the function,
+        # to determine which screen the program is trying to go to.
+        # Depending on which screen it is, either destroy the current
+        # frame and then change current_frame to match the new screen, 
+        # or first check that the program is able to go to the desired
+        # screen.
+
+        # Check that the current frame is defined before trying to destroy
+        # # it (to avoid any unexpected crashes).
         if frame_index == App.LOGIN_SCREEN:
             if self.current_frame:
-                self.current_frame.grid_forget()
+                self.current_frame.destroy()
             self.current_frame = LoginScreen(self)
+
         elif frame_index == App.MAIN_MENU_SCREEN:
-            
             if self.current_frame:
-                self.current_frame.grid_forget()
+                self.current_frame.destroy()
             self.current_frame = MainMenuScreen(self)
+
         elif frame_index == App.BOOK_FLIGHTS_SCREEN:
-            
             if self.current_frame:
-                self.current_frame.grid_forget()
+                self.current_frame.destroy()
             self.current_frame = BookFlightsScreen(self)
+
         elif frame_index == App.VIEW_TICKETS_SCREEN:
-            self.current_frame = ViewTicketsScreen(self)
-        elif frame_index == App.REMOVE_TICKETS_SCREEN:
             if self.current_frame:
-                self.current_frame.grid_forget()
+                self.current_frame.destroy()
+            self.current_frame = ViewTicketsScreen(self)
+
+        elif frame_index == App.REMOVE_TICKETS_SCREEN:
+            # If the user's order is empty, tell them this and do not go to the Remove tickets screen.
+            if len(app.user.tickets) == 0:
+                messagebox.showinfo("Error", "Your order is empty so you have no tickets to remove.")
+                return None                 # Return None so as to exit the method.
+            if self.current_frame:
+                self.current_frame.destroy()
             self.current_frame = RemoveTicketsScreen(self)
+
         elif frame_index == App.FINISH_ORDER_SCREEN:
+            # Start by checking if the user's order is empty, and if so, display a message
+            # and do not take them to the Finish order screen.
             if len(app.user.tickets) == 0:
                 messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
-            else:
+                return None         # Return None so that the function stops executing, and does not try to
+            else:                   # put the same frame on the screen again (last line of function)
                 if self.current_frame:
-                    self.current_frame.grid_forget()
+                    self.current_frame.destroy()
                 self.current_frame = FinishOrderScreen(self)
 
-        #self.current_frame = self.frames[frame_index]
-        # Use the .pack() method to put the new frame on the screen where it is fullscreen/takes up the full window.
+        # Use the .grid() method to put the new frame on the screen where it is fullscreen/takes up the full window.
         self.current_frame.grid(row = 0, column = 0, sticky = "NEWS")
-
-    def create_frame(self, frame_index):
-        if frame_index == App.BOOK_FLIGHTS_SCREEN:
-            return BookFlightsScreen(self)
-        elif frame_index == App.VIEW_TICKETS_SCREEN:
-            return ViewTicketsScreen(self)
-        elif frame_index == App.REMOVE_TICKETS_SCREEN:
-            return RemoveTicketsScreen(self)
-        elif frame_index == App.FINISH_ORDER_SCREEN:
-            return FinishOrderScreen(self)
 
     def quit_program(self):
         '''Verify whether the user wants to cancel their order and quit and act accordingly'''
@@ -570,14 +570,6 @@ class ViewTicketsScreen(Frame):
 class RemoveTicketsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
-        
-        # If the user's order is empty, tell them this and return to the main menu
-        # Note that this should be done before removing the main menu frame, so that the
-        # user does not feel like anything has changed, apart from the messagebox appearing.
-
-        if len(app.user.tickets) == 0:
-            messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
-            app.show_frame(App.MAIN_MENU_SCREEN)
 
         # Configure the rows and columns of the ticket removal screen. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
@@ -657,11 +649,6 @@ class RemoveTicketsScreen(Frame):
 class FinishOrderScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
-
-        # If the user's order is empty, tell them this and return None to exit the function.
-        if len(app.user.tickets) == 0:
-            messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
-            app.show_frame(App.MAIN_MENU_SCREEN)
 
         # Configure the rows and columns for widgets. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
