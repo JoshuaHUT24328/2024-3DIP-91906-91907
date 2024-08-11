@@ -18,6 +18,11 @@ FLIGHT_DEST_AIRPORT_CODE = 4
 FLIGHT_DEPT              = 5
 FLIGHT_BASE_PRICE        = 6
 
+# Constants which store the age boundaries for tickets
+MAX_CHILD_AGE = 17
+MAX_ADULT_AGE = 64
+MAX_SENIOR_AGE = 125
+
 # Constants to be used when calculating the ticket prices for different age groups
 CHILD_TICKET_PRICE = 0.75
 ADULT_TICKET_PRICE = 1.00       # No discounts for Adults
@@ -127,6 +132,8 @@ class App(Tk):
     REMOVE_TICKETS_SCREEN = 4
     FINISH_ORDER_SCREEN = 5
 
+    user = None
+
     def __init__(self):
         '''Class constructor method'''
         super().__init__()              # This is needed to properly initialise the Tk class properly
@@ -138,6 +145,8 @@ class App(Tk):
         # Initialize all frames
         self.frames.append(LoginScreen(self))
         self.frames.append(MainMenuScreen(self))
+        self.frames.append(BookFlightsScreen(self))
+        self.frames.append(ViewTicketsScreen(self))
         #self.frames.append(SettingsScreen(self))
 
         # Show the login screen frame since this will be what the user
@@ -212,7 +221,7 @@ class LoginScreen(Frame):
 
     def user_login(self, user_name, user_email):
         '''Manage the user login part of the program'''
-        global user
+        #global user
 
         # Used to help validate user input
         user_entered_valid_email = False
@@ -251,7 +260,7 @@ class LoginScreen(Frame):
 
         # If the program reaches this point, the user's name and email are valid, since they have passed all validation.
         # Thus, the program can instantiate the User object and continue to the main part of the program.
-        user = User(user_name, user_email)
+        app.user = User(user_name, user_email)
 
         # Destroy the login frame and go to the main frame.
         app.show_frame(App.MAIN_MENU_SCREEN)
@@ -259,6 +268,7 @@ class LoginScreen(Frame):
 class MainMenuScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
+
         # Configure the rows and columns to be used in this frame. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
         # fix the uniformity problem that arises with the grid method.
@@ -290,6 +300,221 @@ class MainMenuScreen(Frame):
         cancel_order_btn = Button(self, text = "Cancel Order", command = lambda: app.quit_program())
         cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
 
+class BookFlightsScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        # Create the columns and rows as required for everything. Doing this manually means that I can
+        # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
+        # fix the uniformity problem that arises with the grid method.
+        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
+        self.columnconfigure(1, weight = 7, uniform = 'a')
+        self.rowconfigure(0, weight = 2, uniform = 'a')
+        self.rowconfigure(1, weight = 10, uniform = 'a')
+        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+        # Columns for table of flights
+        column = ("Airline", "Code", "Destination", "Date/Time", "Price")
+
+        # Create a Treeview widget for the table
+        tree = ttk.Treeview(self, columns = column, show = "headings")
+
+        # Enter the headings for each column in the table
+        tree.heading('Airline', text='Airline')
+        tree.heading('Code', text='Code')
+        tree.heading('Destination', text='Destination')
+        tree.heading('Date/Time', text='Date/Time')
+        tree.heading('Price', text='Price')
+
+        # List to store each flight/row of the table in (in tuple format)
+        data = []
+
+        # Iterate through each flight in the list of all flights and add a tuple for each
+        # flight to the data list.
+        for i in range(len(ALL_FLIGHTS)):
+            data.append((f"{ALL_FLIGHTS[i][FLIGHT_AIRLINE]}", f"{ALL_FLIGHTS[i][FLIGHT_CODE]}", f"{ALL_FLIGHTS[i][FLIGHT_DEST]}", f"{ALL_FLIGHTS[i][FLIGHT_DEPT]}", f"${ALL_FLIGHTS[i][FLIGHT_BASE_PRICE]:.2f}"))
+
+        # Insert each flight onto the tree
+        for d in data:
+            tree.insert('', END, values = d)
+
+        # Use the grid method to put the tree table onto the window
+        tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+        # Add a scrollbar to the table of flights
+        scrollbar = ttk.Scrollbar(self, orient=VERTICAL, command=tree.yview)
+        tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=3, sticky='nws')
+
+        # Below are the labels for all of the text on this frame, as well as the entry boxes for user input.
+        flight_text_lbl = Label(self, text = "Flight Code:", font = ("Arial", 10))
+        flight_text_lbl.grid(row = 2, column = 1, sticky = "W")
+
+        flight_text_entry = Entry(self)
+        flight_text_entry.grid(row = 2, column = 1)
+
+        age_text_lbl = Label(self, text = "Age:", font = ("Arial", 10))
+        age_text_lbl.grid(row = 3, column = 1, sticky = "W")
+
+        age_text_entry = Entry(self)
+        age_text_entry.grid(row = 3, column = 1)
+
+        name_text_lbl = Label(self, text = "Ticket holder Name:", font = ("Arial", 10))
+        name_text_lbl.grid(row = 4, column = 1, sticky = "W")
+
+        name_text_entry = Entry(self)
+        name_text_entry.grid(row = 4, column = 1)
+        
+        # Button for when the user is finished entering information into the entry boxes.
+        # Note that I had to use lambda in order for the command part of the button
+        # to work with passing in inputs to the create_ticket() function.
+        continue_btn = Button(self, text = "Continue", command = lambda: self.create_ticket(flight_text_entry.get(), age_text_entry.get(), name_text_entry.get()))
+        continue_btn.grid(row = 5, column = 1)
+
+    def create_ticket(self, flight_code, age, holder_name):
+        '''Validate information entered by user and instantiate a ticket object'''
+
+        # Used when checking that user has entered the code for a flight that exists
+        flight_exists = False
+
+        # Check the flight code entered by the user with the flight code of each
+        # available flight. This is to make sure that the flight code entered by
+        # the user corresponds to an actual flight that exists.
+        for flight in ALL_FLIGHTS:
+            if flight[FLIGHT_CODE] == flight_code:
+                flight_exists = True
+                chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
+
+        # If the user did not enter a valid flight code, tell them this, and return None so that
+        # the function will stop executing.
+        if flight_exists == False:
+            messagebox.showinfo("Error", "Please enter a flight code that exists")
+            return None
+
+        # Convert the age entered by the user from the Entrybox to an integer value.
+        # This must be done or else the program will not be able to work with the age
+        # variable.
+        age = int(age)
+        age_type = StringVar()      # Used to store the age type of the ticket holder (e.g. Child, Adult, Senior)
+
+        # Validate the user's input and/or determine the age type of the ticket holder.
+        # Set the value of age_type accordingly.
+        if age < 0:     # Start by checking that the user did not enter a negative number (Accept 0 as an age because a baby who is just born technically has an age equivalent of 0 years old.)
+            # If the user entered a negative age, display a message and return None to exit the function.
+            messagebox.showinfo("Error", "An age cannot be a negative number, please enter a real age.")    
+            return None
+        elif age <= MAX_CHILD_AGE:
+            # If the age entered is not less than 0, we already know that it must be greater than or equal to zero,
+            # so we just need to check that it is less than or equal to MAX_CHILD_AGE. That is, we do not need to
+            # do: 
+            # elif user_age >= 0 and user_age <= MAX_CHILD_AGE
+            # Instead, for more succint code, we just need to test on the upper limit that user_age <= MAX_CHILD_AGE.
+            age_type = "Child"
+        elif age <= MAX_ADULT_AGE:
+            age_type = "Adult"
+        elif age <= MAX_SENIOR_AGE:
+            age_type = "Senior"
+        else:
+            # If the user enters an age which is greater than the maximum senior age (i.e. an age that is 
+            # unrealistically high), tell them to enter a real age and return None to exit the function.
+            messagebox.showinfo("Error", "Please enter a real age.")
+            return None
+
+        # If the user did not enter a name, display a message and 
+        # return None to exit the function
+        if len(holder_name) == 0:
+            messagebox.showinfo("Error", "Please enter a name.")
+            return None
+
+        # Iterate through each character in the user's name and check that it is either a character in the
+        # alphabet, or it is one of the special characters that are allowed in a user's name.
+        for character in holder_name:
+            if character.isalpha() or character in ACCEPTED_SPECIAL_CHARACTERS:
+                continue        # Character is valid, so continue to the next iteration of the loop to check the next character.
+            else:
+                # User's name contains an invalid character, so display a message and return None to exit the function.
+                messagebox.showinfo("Error", "Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
+                return None
+
+        # If the program reaches this point, it means that the details provided by the user have passed validation and so are correct.
+        # Thus, instantiate a Ticket object with the relevant information and add it to the user's tickets.
+        ticket = Ticket(holder_name, chosen_flight[FLIGHT_AIRLINE], chosen_flight[FLIGHT_CODE], chosen_flight[FLIGHT_DEST], chosen_flight[FLIGHT_DEST_AIRPORT], chosen_flight[FLIGHT_DEST_AIRPORT_CODE], chosen_flight[FLIGHT_DEPT], age_type, chosen_flight[FLIGHT_BASE_PRICE])
+        app.user.add_ticket(ticket)
+
+        # Check if the user's ticket qualified for a discount because of the ticket holder age.
+        # If so, display a message to tell the user this, and then display another message as confirmation
+        # for their ticket. Even if the user does not qualify for a discount based on their age,
+        # still display a confirmation message for their ticket.
+        if age_type == "Child":
+            messagebox.showinfo("Discount information", f"This ticket qualifies for a Child's discount of {(1 - CHILD_TICKET_PRICE) * 100}%, bringing the price down to {ticket.price}.")
+            messagebox.showinfo("Confirmation", f"Child's Ticket added to order.")
+        elif age_type == "Senior":
+            messagebox.showinfo("Discount information", f"This ticket qualifies for a Senior's discount of {(1 - SENIOR_TICKET_PRICE) * 100}%, bringing the price down to {ticket.price}.")
+            messagebox.showinfo("Confirmation", f"Senior's Ticket added to order.")
+        else:
+            messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
+
+        # After having created a ticket, the user should return back to the main menu.
+        # Thus, remove the booking flight frame with .destroy() and call the main_screen() function.
+        app.show_frame(App.MAIN_MENU_SCREEN)
+
+class ViewTicketsScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        # Configure the rows and columns for widgets on this frame. Doing this manually means that I can
+        # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
+        # fix the uniformity problem that arises with the grid method.
+        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
+        self.columnconfigure(1, weight = 7, uniform = 'a')
+        self.rowconfigure(0, weight = 2, uniform = 'a')
+        self.rowconfigure(1, weight = 10, uniform = 'a')
+        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+
+        # Columns for table of tickets
+        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+
+        # Create a Treeview widget for the table
+        tree = ttk.Treeview(self, columns = column, show = "headings")
+
+        # Enter the headings for each column in the table
+        tree.heading('#', text='#')
+        tree.heading('Name', text='Name')
+        tree.heading('Airline', text='Airline')
+        tree.heading('Code', text='Code')
+        tree.heading('Destination', text='Destination')
+        tree.heading('Type', text='Type')
+        tree.heading('Date/Time', text='Date/Time')
+        tree.heading('Price', text='Price')
+
+        # List to store each ticket/row of the table in (in tuple format)
+        data = []
+
+        # Iterate through each ticket of the user's tickets and add a tuple for each
+        # ticket to the data list.
+        for i in range(len(app.user.tickets)):
+            data.append((f"{i + 1}", f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
+
+        # Insert each ticket onto the tree
+        for d in data:
+            tree.insert('', END, values = d)
+
+        # Use the grid method to put the tree table onto the window
+        tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+
+        # Add a scrollbar to the table of tickets
+        scrollbar = ttk.Scrollbar(self, orient=VERTICAL, command=tree.yview)
+        tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=1, column=3, sticky='nws')
+
+        # Button for the user to go back to the main menu
+        close_btn = Button(self, text = "Close", command = self.exit_screen)
+        close_btn.grid(row = 3, column = 1)
+
+    def exit_screen(self):
+        '''Allow the user to return back to the main menu'''
+        
+        app.show_frame(App.MAIN_MENU_SCREEN)
 
 # Setup main window
 app = App()
