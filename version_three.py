@@ -496,11 +496,21 @@ class BookFlightsScreen(Frame):
         self.rowconfigure(1, weight = 10, uniform = 'a')
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
+        # Back button for the user to return to the main menu
+        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
+        back_btn.grid(row = 0, column = 0)
+
         # Columns for table of flights
         column = ("Airline", "Code", "Destination", "Date/Time", "Price")
 
         # Create a Treeview widget for the table
         tree = ttk.Treeview(self, columns = column, show = "headings")
+
+        tree.column("Airline", minwidth = 110, width = 120, anchor='center')
+        tree.column("Code", minwidth = 50, width = 65, anchor='center')
+        tree.column("Destination", minwidth = 175, width = 230, anchor='center')
+        tree.column("Date/Time", minwidth = 125, width = 160, anchor='center')
+        tree.column("Price", minwidth = 60, width = 100, anchor='center')
 
         # Enter the headings for each column in the table
         tree.heading('Airline', text='Airline')
@@ -656,12 +666,6 @@ class ViewTicketsScreen(Frame):
         self.rowconfigure(1, weight = 10, uniform = 'a')
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
-        # Create the widgets for this window, though only if a User object has been instantiated.
-        # Trying to create the widgets without the User object being instantiated can cause issues.
-        
-        self.create_widgets()
-
-    def create_widgets(self):
         '''Create the widgets for this windows'''
         # Columns for table of tickets
         column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
@@ -721,6 +725,10 @@ class RemoveTicketsScreen(Frame):
         self.rowconfigure(1, weight = 10, uniform = 'a')
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
+        # Back button for the user to return to the main menu
+        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
+        back_btn.grid(row = 0, column = 0)
+        
         # Columns for table of tickets
         column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
 
