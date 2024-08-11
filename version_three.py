@@ -9,6 +9,8 @@ from tkinter import messagebox
 
 from datetime import datetime
 
+import json
+
 # Constants to be used when accessing the data of flights, so as to improve code readability
 FLIGHT_AIRLINE           = 0
 FLIGHT_CODE              = 1
@@ -124,11 +126,13 @@ class User:
 class App(Tk):
     # Class constant variables used to refer to each screen/frame in the program
     LOGIN_SCREEN = 0
-    MAIN_MENU_SCREEN = 1
-    BOOK_FLIGHTS_SCREEN = 2
-    VIEW_TICKETS_SCREEN = 3
-    REMOVE_TICKETS_SCREEN = 4
-    FINISH_ORDER_SCREEN = 5
+    ACCOUNT_LOGIN_SCREEN = 1
+    ACCOUNT_CREATION_SCREEN = 2
+    MAIN_MENU_SCREEN = 3
+    BOOK_FLIGHTS_SCREEN = 4
+    VIEW_TICKETS_SCREEN = 5
+    REMOVE_TICKETS_SCREEN = 6
+    FINISH_ORDER_SCREEN = 7
 
     # Stores the User object when instantiated. This is so that
     # it does not need to be made a global variable, but can
@@ -168,6 +172,16 @@ class App(Tk):
             if self.current_frame:
                 self.current_frame.destroy()
             self.current_frame = LoginScreen(self)
+
+        elif frame_index == App.ACCOUNT_LOGIN_SCREEN:
+            if self.current_frame:
+                self.current_frame.destroy()
+            self.current_frame = AccountLoginScreen(self)
+
+        elif frame_index == App.ACCOUNT_CREATION_SCREEN:
+            if self.current_frame:
+                self.current_frame.destroy()
+            self.current_frame = AccountCreationScreen(self)
 
         elif frame_index == App.MAIN_MENU_SCREEN:
             if self.current_frame:
@@ -230,49 +244,160 @@ class LoginScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
-        # Configure the rows and columns to be used in this frame. Doing this manually means that I can
-        # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
-        # fix the uniformity problem that arises with the grid method.
-        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
-        self.columnconfigure(1, weight = 3, uniform = 'a')
-        self.rowconfigure(0, weight = 2, uniform = 'a')
-        self.rowconfigure((1, 2, 3, 4, 5), weight = 1, uniform = 'a')
+        # Configure the rows and columns to be used in this frame.
+        self.columnconfigure((0, 2), weight=2, uniform='a')
+        self.columnconfigure(1, weight=3, uniform='a')
+        self.rowconfigure(0, weight=2, uniform='a')
+        self.rowconfigure((1, 2, 3, 4, 5), weight=1, uniform='a')
 
         # Main header text
-        header_lbl = Label(self, text = "Welcome to the Flight Booking App!", font = ("Arial", 20))
-        header_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
+        header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
 
-        # Label and entry box for user's name
-        name_lbl = Label(self, text = "Please enter your name", font = ("Arial", 12))
-        name_lbl.grid(row = 1, column = 1, sticky = "WENS")
+        subtext_lbl = Label(self, text="What would you like to do?", font=("Arial", 13))
+        subtext_lbl.grid(row=1, column=1, sticky="WE")
 
-        name_entry = Entry(self)
-        name_entry.grid(row = 2, column = 1, sticky = "WE")
+        login_screen_btn = Button(self, text="Login", command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
+        login_screen_btn.grid(row=2, column=1)
 
-        # Label and entry box for user's email
-        email_lbl = Label(self, text = "Please enter your email", font = ("Arial", 12))
-        email_lbl.grid(row = 3, column = 1, sticky = "WENS")
+        create_account_btn = Button(self, text="Create Account", command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN))
+        create_account_btn.grid(row=3, column=1)
 
-        email_entry = Entry(self)
-        email_entry.grid(row = 4, column = 1, sticky = "WE")
+class AccountLoginScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
 
-        # Button for when user has finished entering information
-        login_btn = Button(self, text = "Continue", font = ("Arial", 9), command = lambda:self.user_login(name_entry.get(), email_entry.get()))
-        login_btn.grid(row = 5, column = 1)
+        # Load the json accounts file
+        with open("accounts.json", "r") as f:
+            self.accounts = json.load(f)
 
-    def user_login(self, user_name, user_email):
+        # Configure the rows and columns to be used in this frame.
+        self.columnconfigure((0, 2), weight=2, uniform='a')
+        self.columnconfigure(1, weight=3, uniform='a')
+        self.rowconfigure(0, weight=2, uniform='a')
+        self.rowconfigure((1, 2, 3, 4, 5), weight=1, uniform='a')
+
+        # Main header text
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
+        header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
+
+        # Label and entry box for user's email address
+        email_lbl = Label(self, text="Please enter your email", font=("Arial", 12))
+        email_lbl.grid(row=1, column=1, sticky="WENS")
+
+        self.email_entry = Entry(self)
+        self.email_entry.grid(row=2, column=1, sticky="WE")
+
+        # Label and entry box for user's password
+        password_lbl = Label(self, text="Please enter your password", font=("Arial", 12))
+        password_lbl.grid(row=3, column=1, sticky="WENS")
+
+        self.password_entry = Entry(self, show="*")
+        self.password_entry.grid(row=4, column=1, sticky="WE")
+
+        # Button for when the user has finished entering information
+        login_btn = Button(self, text="Continue", font=("Arial", 9), command=self.user_login)
+        login_btn.grid(row=5, column=1)
+
+    def user_login(self):
         '''Manage the user login part of the program'''
-        #global user
+        user_email = self.email_entry.get()
+        user_password = self.password_entry.get()
 
-        # Used to help validate user input
-        user_entered_valid_email = False
-
-        # Start by checking that the user entered a name. If not, display a message and return None
-        # to exit the user_login() function (this will bring the user back to the login screen).
-        if len(user_name) == 0:
-            messagebox.showinfo("Error", "Please enter a name.")
+        # Start by checking that the user entered an email and password. If not, display a message and return None
+        # to exit the user_login() method (this will bring the user back to the login screen).
+        if len(user_email) == 0 or len(user_password) == 0:
+            messagebox.showinfo("Error", "Please enter your email and/or password.")
             return None
 
+        # Check that the user entered the email address for an account that exists.
+        # This variable will become True if an account is found with the same email
+        # address that the user entered.
+        account_exists = False
+
+        # Stores the user's account if it is found.
+        user_account = None
+
+        # Iterate through each account and see if it has an email address which matches
+        # what the user typed in.
+        for account in self.accounts["accounts"]:
+            if account["email"] == user_email:
+                user_account = account
+                account_exists = True
+                break
+
+        # Tell the user that there are no accounts that could be found with their email,
+        # and return None to exit the user_login() method.
+        if not account_exists:
+            messagebox.showinfo("Account not found", "No accounts were found with your email. Please ensure you have entered the correct email.")
+            return None
+
+        # Check that the user's password is correct.
+        # If not, display a message and return None to exit the user_login() method.
+        if user_account["password"] != user_password:
+            messagebox.showinfo("Incorrect Password", "The password you have entered is incorrect.")
+            return None
+        else:
+            # Welcome the user (their password is correct).
+            messagebox.showinfo("Welcome", f"Welcome {user_account['name']}!")
+
+        # Instantiate the User object and continue to the main part of the program.
+        app.user = User(user_account["name"], user_account["email"])
+        app.show_frame(App.MAIN_MENU_SCREEN)
+
+class AccountCreationScreen(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        # Configure the rows and columns to be used in this frame.
+        self.columnconfigure((0, 2), weight=2, uniform='a')
+        self.columnconfigure(1, weight=3, uniform='a')
+        self.rowconfigure((0, 1), weight=2, uniform='a')
+        self.rowconfigure((2, 3, 4, 5, 6, 7, 8), weight=1, uniform='a')
+
+        # Main header text
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
+        header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
+
+        sub_header_lbl = Label(self, text = "Please enter the following information", font = ("Arial", 12))
+        sub_header_lbl.grid(row = 1, column = 1, sticky = "EW")
+
+        # Label and entry box for user's name
+        name_lbl = Label(self, text = "Name", font = ("Arial", 10))
+        name_lbl.grid(row = 2, column = 1, sticky = "NEWS")
+
+        self.name_entry = Entry(self)
+        self.name_entry.grid(row = 3, column = 1, sticky = "WE")
+        
+        # Label and entry box for user's email
+        email_lbl = Label(self, text = "Email", font = ("Arial", 10))
+        email_lbl.grid(row = 4, column = 1, sticky = "NEWS")
+
+        self.email_entry = Entry(self)
+        self.email_entry.grid(row = 5, column = 1, sticky = "WE")
+        
+        # Label and entry box for user's password
+        password_lbl = Label(self, text = "Password", font = ("Arial", 10))
+        password_lbl.grid(row = 6, column = 1, sticky = "NEWS")
+
+        self.password_entry = Entry(self)
+        self.password_entry.grid(row = 7, column = 1, sticky = "WE")
+
+        # Button to create account when user has finished entering information
+        create_account_btn = Button(self, text = "Create Account", font = ("Arial", 9), command = self.user_create_account)
+        create_account_btn.grid(row = 8, column = 1)
+
+    def user_create_account(self):
+        '''Manage the account creation part of the program'''
+
+        user_name = self.name_entry.get()
+        user_email = self.email_entry.get()
+        user_password = self.password_entry.get()
+
+        if len(user_name) == 0 or len(user_email) == 0 or len(user_password) == 0:
+            messagebox.showinfo("Incomplete section(s)", "Please complete the form by filling in each section.")
+            return None
+        
         # Iterate through each character in the user's name and check that it is either a character in the
         # alphabet, or it is one of the special characters that are allowed in a user's name.
         for character in user_name:
@@ -283,6 +408,7 @@ class LoginScreen(Frame):
                 messagebox.showinfo("Error", "Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
                 return None
 
+        user_entered_valid_email = False
         # Iterate through each character in user's email address to check that there exists an '@'
         # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
         # address, characters that are not allowed in a name, it becomes more difficult to validate user input
@@ -298,14 +424,29 @@ class LoginScreen(Frame):
         if user_entered_valid_email == False:
             messagebox.showinfo("Error", "Please enter a valid email address.")
             return None
-
-        # If the program reaches this point, the user's name and email are valid, since they have passed all validation.
-        # Thus, the program can instantiate the User object and continue to the main part of the program.
+        
+        self.write_user_to_file(user_name, user_email, user_password)
+        # Instantiate the User object and continue to the main part of the program.
         app.user = User(user_name, user_email)
-        #app.user_created()
-
-        # Destroy the login frame and go to the main frame.
         app.show_frame(App.MAIN_MENU_SCREEN)
+
+    def write_user_to_file(self, user_name, user_email, user_password):
+        '''Write the user's account information to a file'''
+
+        # Open the accounts file to update it.
+        with open("accounts.json") as f:
+            data = json.load(f)
+
+        # Add the account information to the data dictionary.
+        data["accounts"].append({"name": user_name, "email": user_email, "password": user_password})
+        print(data)
+
+        # Write the updated info to the file.
+        with open("accounts.json", "w") as f:
+            json.dump(data, f, indent = 4)
+
+        # Tell the user that their account has been created.
+        messagebox.showinfo("Confirmation", f"Account created successfully, Welcome {user_name}!")
 
 class MainMenuScreen(Frame):
     def __init__(self, master):
