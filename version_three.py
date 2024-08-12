@@ -439,7 +439,6 @@ class AccountCreationScreen(Frame):
 
         # Add the account information to the data dictionary.
         data["accounts"].append({"name": user_name, "email": user_email, "password": user_password})
-        print(data)
 
         # Write the updated info to the file.
         with open("accounts.json", "w") as f:
