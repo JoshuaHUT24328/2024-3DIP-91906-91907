@@ -539,12 +539,21 @@ class BookFlightsScreen(Frame):
         tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=1, column=3, sticky='nws')
 
-        # Below are the labels for all of the text on this frame, as well as the entry boxes for user input.
-        flight_text_lbl = Label(self, text = "Flight Code:", font = ("Arial", 10))
-        flight_text_lbl.grid(row = 2, column = 1, sticky = "W")
+        # Used to determine when the user has selected a flight, and which flight it is.
+        self.selected_flight_code = None
 
-        flight_text_entry = Entry(self)
-        flight_text_entry.grid(row = 2, column = 1)
+        def on_row_select(event):
+            # Get the selected item
+            selected_item = tree.selection()[0]
+            values = tree.item(selected_item, "values")
+            self.selected_flight_code = str(values[1])
+
+        # Bind the TreeView selection event
+        tree.bind("<<TreeviewSelect>>", on_row_select)
+
+        # Below are the labels for all of the text on this frame, as well as the entry boxes for user input.
+        flight_text_lbl = Label(self, text = "Click the flight to select it", font = ("Arial", 10))
+        flight_text_lbl.grid(row = 2, column = 1, sticky = "W")
 
         age_text_lbl = Label(self, text = "Age:", font = ("Arial", 10))
         age_text_lbl.grid(row = 3, column = 1, sticky = "W")
@@ -561,28 +570,21 @@ class BookFlightsScreen(Frame):
         # Button for when the user is finished entering information into the entry boxes.
         # Note that I had to use lambda in order for the command part of the button
         # to work with passing in inputs to the create_ticket() function.
-        continue_btn = Button(self, text = "Continue", command = lambda: self.create_ticket(flight_text_entry.get(), age_text_entry.get(), name_text_entry.get()))
+        continue_btn = Button(self, text = "Continue", command = lambda: self.create_ticket(self.selected_flight_code, age_text_entry.get(), name_text_entry.get()))
         continue_btn.grid(row = 5, column = 1)
 
     def create_ticket(self, flight_code, age, holder_name):
         '''Validate information entered by user and instantiate a ticket object'''
 
-        # Used when checking that user has entered the code for a flight that exists
-        flight_exists = False
-
-        # Check the flight code entered by the user with the flight code of each
-        # available flight. This is to make sure that the flight code entered by
-        # the user corresponds to an actual flight that exists.
-        for flight in ALL_FLIGHTS:
-            if flight[FLIGHT_CODE] == flight_code:
-                flight_exists = True
-                chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
-
-        # If the user did not enter a valid flight code, tell them this, and return None so that
+        # If the user did not select a flight, tell them this, and return None so that
         # the function will stop executing.
-        if flight_exists == False:
-            messagebox.showinfo("Error", "Please enter a flight code that exists")
+        if flight_code == None:
+            messagebox.showinfo("Error", "Please select a flight.")
             return None
+        
+        for flight in ALL_FLIGHTS:
+                   if flight[FLIGHT_CODE] == flight_code:
+                       chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
 
         # Convert the age entered by the user from the Entrybox to an integer value.
         # This must be done or else the program will not be able to work with the age
@@ -728,7 +730,7 @@ class RemoveTicketsScreen(Frame):
         # Back button for the user to return to the main menu
         back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
         back_btn.grid(row = 0, column = 0)
-        
+
         # Columns for table of tickets
         column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
 
