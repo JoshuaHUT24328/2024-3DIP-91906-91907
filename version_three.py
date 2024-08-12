@@ -1,4 +1,4 @@
-# Date: 07/08/2024
+# Date: 12/08/2024
 # Author: Joshua Hutchings
 # Version: 3
 # Purpose: Create a program that allows the user to book a plane flight
@@ -670,13 +670,20 @@ class ViewTicketsScreen(Frame):
 
         '''Create the widgets for this windows'''
         # Columns for table of tickets
-        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+        column = ("Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
 
         # Create a Treeview widget for the table
         tree = ttk.Treeview(self, columns = column, show = "headings")
 
+        tree.column("Name", minwidth = 80, width = 90, anchor = 'center')
+        tree.column("Airline", minwidth = 110, width = 120, anchor='center')
+        tree.column("Code", minwidth = 50, width = 50, anchor='center')
+        tree.column("Destination", minwidth = 175, width = 185, anchor='center')
+        tree.column("Type", minwidth = 50, width = 50, anchor='center')
+        tree.column("Date/Time", minwidth = 125, width = 125, anchor='center')
+        tree.column("Price", minwidth = 60, width = 60, anchor='center')
+
         # Enter the headings for each column in the table
-        tree.heading('#', text='#')
         tree.heading('Name', text='Name')
         tree.heading('Airline', text='Airline')
         tree.heading('Code', text='Code')
@@ -691,7 +698,7 @@ class ViewTicketsScreen(Frame):
         # Iterate through each ticket of the user's tickets and add a tuple for each
         # ticket to the data list.
         for i in range(len(self.master.user.tickets)):
-            data.append((f"{i + 1}", f"{self.master.user.tickets[i].holder_name}", f"{self.master.user.tickets[i].airline}", f"{self.master.user.tickets[i].flight_code}", f"{self.master.user.tickets[i].destination}", f"{self.master.user.tickets[i].age_type}", f"{self.master.user.tickets[i].estimated_departure}", f"${self.master.user.tickets[i].price:.2f}"))
+            data.append((f"{self.master.user.tickets[i].holder_name}", f"{self.master.user.tickets[i].airline}", f"{self.master.user.tickets[i].flight_code}", f"{self.master.user.tickets[i].destination}", f"{self.master.user.tickets[i].age_type}", f"{self.master.user.tickets[i].estimated_departure}", f"${self.master.user.tickets[i].price:.2f}"))
 
         # Insert each ticket onto the tree
         for d in data:
@@ -732,28 +739,34 @@ class RemoveTicketsScreen(Frame):
         back_btn.grid(row = 0, column = 0)
 
         # Columns for table of tickets
-        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
+        column = ("Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
 
         # Enter the headings for each column in the table
         tree = ttk.Treeview(self, columns = column, show = "headings")
-        column = ("#", "Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")    # Create a Treeview widget for the table
-        tree.heading('#', text='#')
+        
+        tree.column("Name", minwidth = 80, width = 90, anchor = 'center')
+        tree.column("Airline", minwidth = 110, width = 120, anchor='center')
+        tree.column("Code", minwidth = 50, width = 50, anchor='center')
+        tree.column("Destination", minwidth = 175, width = 185, anchor='center')
+        tree.column("Type", minwidth = 50, width = 50, anchor='center')
+        tree.column("Date/Time", minwidth = 125, width = 125, anchor='center')
+        tree.column("Price", minwidth = 60, width = 60, anchor='center')
+        
         tree.heading('Name', text='Name')
         tree.heading('Airline', text='Airline')
-
         tree.heading('Code', text='Code')
         tree.heading('Destination', text='Destination')
-
         tree.heading('Type', text='Type')
         tree.heading('Date/Time', text='Date/Time')
         tree.heading('Price', text='Price')
+
         # List to store each ticket/row of the table in (in tuple format)
         data = []
         # Iterate through each ticket in the user's tickets and add a tuple for each
 
         # ticket to the data list.
         for i in range(len(app.user.tickets)):
-            data.append((f"{i + 1}", f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
+            data.append((f"{app.user.tickets[i].holder_name}", f"{app.user.tickets[i].airline}", f"{app.user.tickets[i].flight_code}", f"{app.user.tickets[i].destination}", f"{app.user.tickets[i].age_type}", f"{app.user.tickets[i].estimated_departure}", f"${app.user.tickets[i].price:.2f}"))
 
         # Insert each ticket onto the tree
         for d in data:
@@ -768,32 +781,40 @@ class RemoveTicketsScreen(Frame):
         tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=1, column=3, sticky='nws')
 
+        # Used to determine when the user has selected a flight, and which flight it is.
+        self.selected_flight_code = None
+
+        def on_row_select(event):
+            # Get the selected item
+            selected_item = tree.selection()[0]
+            values = tree.index(selected_item)
+            self.selected_flight_code = int(values)
+
+        # Bind the TreeView selection event
+        tree.bind("<<TreeviewSelect>>", on_row_select)
+
         # Label to tell the user to remove their ticket.
-        remove_text_lbl = Label(self, text = "Ticket number: ", font = ("Arial", 10))
+        remove_text_lbl = Label(self, text = "Select the ticket you wish to remove", font = ("Arial", 10))
         remove_text_lbl.grid(row = 3, column = 1, sticky = "W")
 
-        # Entry box for user to enter the ticket number.
-        remove_text_entry = Entry(self)
-        remove_text_entry.grid(row = 3, column = 1)
-
         # Button for when user has entered their ticket number.
-        remove_btn = Button(self, text = "Remove", command = lambda: self.remove_users_ticket(int(remove_text_entry.get())))
+        remove_btn = Button(self, text = "Remove", command = lambda: self.remove_users_ticket(self.selected_flight_code))
         remove_btn.grid(row = 4, column = 1)
 
     def remove_users_ticket(self, ticket_to_remove):
         '''Remove ticket from order'''
         
-        # Check that the number entered by the user corresponds to an actual ticket from their order. If not,
-        # tell them this and return None to exit the function (the remove_users_ticket() function).
-        if ticket_to_remove < 1 or ticket_to_remove > len(app.user.tickets):
-            messagebox.showinfo("Error", "Please enter a number which corresponds to a ticket in your order.")
+        # If the user did not select a flight, tell them this, and return None so that
+        # the function will stop executing.
+        if ticket_to_remove == None:
+            messagebox.showinfo("Error", "Please select a flight.")
             return None
         
+        #ticket_to_remove = ticket_to_remove.split(',')
+    
         # Remove the ticket specified by the user.
-        # Note that we must remove the (i - 1)th ticket, rather than the ith ticket, because
-        # the first ticket on the Treeview table has a number of 1, whereas the first ticket
-        # in the tickets list is 0.
-        app.user.remove_ticket(ticket_to_remove - 1)
+        app.user.remove_ticket(ticket_to_remove)
+
         messagebox.showinfo("Ticket removed", "Ticket has been removed from your order.")       # Display confirmation to the user.
         app.show_frame(App.MAIN_MENU_SCREEN)
 
