@@ -641,10 +641,10 @@ class BookFlightsScreen(Frame):
         # for their ticket. Even if the user does not qualify for a discount based on their age,
         # still display a confirmation message for their ticket.
         if age_type == "Child":
-            messagebox.showinfo("Discount information", f"This ticket qualifies for a Child's discount of {(1 - CHILD_TICKET_PRICE) * 100}%, bringing the price down to {ticket.price}.")
+            messagebox.showinfo("Discount information", f"This ticket qualifies for a Child's discount of {(1 - CHILD_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.")
             messagebox.showinfo("Confirmation", f"Child's Ticket added to order.")
         elif age_type == "Senior":
-            messagebox.showinfo("Discount information", f"This ticket qualifies for a Senior's discount of {(1 - SENIOR_TICKET_PRICE) * 100}%, bringing the price down to {ticket.price}.")
+            messagebox.showinfo("Discount information", f"This ticket qualifies for a Senior's discount of {(1 - SENIOR_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.")
             messagebox.showinfo("Confirmation", f"Senior's Ticket added to order.")
         else:
             messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
