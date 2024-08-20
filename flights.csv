@@ -1,0 +1,53 @@
+Airline,Flight Code,Destination,Destination Airport,Destination Airport Code,Departure,Base Price
+Air New Zealand,NZ101,"Wellington, New Zealand",Wellington International Airport,WLG,2024-07-10 06:30:00,150.0
+Qantas,QF122,"Sydney, Australia",Sydney Kingsford Smith Airport,SYD,2024-07-10 07:45:00,350.0
+Jetstar,JQ201,"Melbourne, Australia",Melbourne Airport,MEL,2024-07-10 08:15:00,300.0
+Singapore Airlines,SQ286,"Singapore, Singapore",Changi Airport,SIN,2024-07-10 09:00:00,750.0
+Cathay Pacific,CX198,"Hong Kong, Hong Kong",Hong Kong International Airport,HKG,2024-07-10 09:45:00,650.0
+Emirates,EK407,"Dubai, UAE",Dubai International Airport,DXB,2024-07-10 10:30:00,1200.0
+Virgin Australia,VA144,"Brisbane, Australia",Brisbane Airport,BNE,2024-07-10 11:00:00,320.0
+Fiji Airways,FJ410,"Nadi, Fiji",Nadi International Airport,NAN,2024-07-10 11:45:00,400.0
+LATAM Airlines,LA800,"Santiago, Chile",Arturo Merino Benítez Airport,SCL,2024-07-10 12:30:00,1300.0
+Air Tahiti Nui,TN102,"Papeete, French Polynesia",Faa'a International Airport,PPT,2024-07-10 13:15:00,900.0
+Qantas,QF156,"Adelaide, Australia",Adelaide Airport,ADL,2024-07-10 14:00:00,340.0
+Air New Zealand,NZ105,"Christchurch, New Zealand",Christchurch International Airport,CHC,2024-07-10 14:45:00,160.0
+Malaysia Airlines,MH130,"Kuala Lumpur, Malaysia",Kuala Lumpur International Airport,KUL,2024-07-10 15:30:00,720.0
+American Airlines,AA83,"Los Angeles, USA",Los Angeles International Airport,LAX,2024-07-10 16:15:00,1100.0
+United Airlines,UA916,"San Francisco, USA",San Francisco International Airport,SFO,2024-07-10 17:00:00,1150.0
+Air Canada,AC34,"Vancouver, Canada",Vancouver International Airport,YVR,2024-07-10 17:45:00,1050.0
+British Airways,BA16,"London, UK",Heathrow Airport,LHR,2024-07-10 18:30:00,1400.0
+Lufthansa,LH791,"Frankfurt, Germany",Frankfurt Airport,FRA,2024-07-10 19:15:00,1350.0
+Qatar Airways,QR921,"Doha, Qatar",Hamad International Airport,DOH,2024-07-10 20:00:00,1250.0
+Japan Airlines,JL786,"Tokyo, Japan",Narita International Airport,NRT,2024-07-10 20:45:00,980.0
+Korean Air,KE130,"Seoul, South Korea",Incheon International Airport,ICN,2024-07-10 21:30:00,940.0
+Thai Airways,TG492,"Bangkok, Thailand",Suvarnabhumi Airport,BKK,2024-07-10 22:15:00,890.0
+China Southern,CZ306,"Guangzhou, China",Guangzhou Baiyun International Airport,CAN,2024-07-10 23:00:00,820.0
+Air New Zealand,NZ289,"Shanghai, China",Shanghai Pudong International Airport,PVG,2024-07-10 23:45:00,840.0
+LATAM Airlines,LA806,"Lima, Peru",Jorge Chávez International Airport,LIM,2024-07-11 00:30:00,1250.0
+Qantas,QF164,"Perth, Australia",Perth Airport,PER,2024-07-11 01:15:00,370.0
+Air New Zealand,NZ102,"Wellington, New Zealand",Wellington International Airport,WLG,2024-07-11 06:30:00,150.0
+Qantas,QF123,"Sydney, Australia",Sydney Kingsford Smith Airport,SYD,2024-07-11 07:45:00,350.0
+Jetstar,JQ202,"Melbourne, Australia",Melbourne Airport,MEL,2024-07-11 08:15:00,300.0
+Singapore Airlines,SQ287,"Singapore, Singapore",Changi Airport,SIN,2024-07-11 09:00:00,750.0
+Cathay Pacific,CX199,"Hong Kong, Hong Kong",Hong Kong International Airport,HKG,2024-07-11 09:45:00,650.0
+Emirates,EK408,"Dubai, UAE",Dubai International Airport,DXB,2024-07-11 10:30:00,1200.0
+Virgin Australia,VA145,"Brisbane, Australia",Brisbane Airport,BNE,2024-07-11 11:00:00,320.0
+Fiji Airways,FJ411,"Nadi, Fiji",Nadi International Airport,NAN,2024-07-11 11:45:00,400.0
+LATAM Airlines,LA801,"Santiago, Chile",Arturo Merino Benítez Airport,SCL,2024-07-11 12:30:00,1300.0
+Air Tahiti Nui,TN103,"Papeete, French Polynesia",Faa'a International Airport,PPT,2024-07-11 13:15:00,900.0
+Qantas,QF157,"Adelaide, Australia",Adelaide Airport,ADL,2024-07-11 14:00:00,340.0
+Air New Zealand,NZ106,"Christchurch, New Zealand",Christchurch International Airport,CHC,2024-07-11 14:45:00,160.0
+Malaysia Airlines,MH131,"Kuala Lumpur, Malaysia",Kuala Lumpur International Airport,KUL,2024-07-11 15:30:00,720.0
+American Airlines,AA84,"Los Angeles, USA",Los Angeles International Airport,LAX,2024-07-11 16:15:00,1100.0
+United Airlines,UA917,"San Francisco, USA",San Francisco International Airport,SFO,2024-07-11 17:00:00,1150.0
+Air Canada,AC35,"Vancouver, Canada",Vancouver International Airport,YVR,2024-07-11 17:45:00,1050.0
+British Airways,BA17,"London, UK",Heathrow Airport,LHR,2024-07-11 18:30:00,1400.0
+Lufthansa,LH792,"Frankfurt, Germany",Frankfurt Airport,FRA,2024-07-11 19:15:00,1350.0
+Qatar Airways,QR922,"Doha, Qatar",Hamad International Airport,DOH,2024-07-11 20:00:00,1250.0
+Japan Airlines,JL787,"Tokyo, Japan",Narita International Airport,NRT,2024-07-11 20:45:00,980.0
+Korean Air,KE131,"Seoul, South Korea",Incheon International Airport,ICN,2024-07-11 21:30:00,940.0
+Thai Airways,TG493,"Bangkok, Thailand",Suvarnabhumi Airport,BKK,2024-07-11 22:15:00,890.0
+China Southern,CZ307,"Guangzhou, China",Guangzhou Baiyun International Airport,CAN,2024-07-11 23:00:00,820.0
+Air New Zealand,NZ290,"Shanghai, China",Shanghai Pudong International Airport,PVG,2024-07-11 23:45:00,840.0
+LATAM Airlines,LA807,"Lima, Peru",Jorge Chávez International Airport,LIM,2024-07-12 00:30:00,1250.0
+Qantas,QF165,"Perth, Australia",Perth Airport,PER,2024-07-12 01:15:00,370.0
