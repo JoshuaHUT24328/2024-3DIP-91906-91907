@@ -9,6 +9,7 @@ from tkinter import messagebox
 
 from datetime import datetime
 
+import csv
 import json
 
 # Constants to be used when accessing the data of flights, so as to improve code readability
@@ -33,61 +34,7 @@ SENIOR_TICKET_PRICE = 0.60
 # Characters that are not in the alphabet, but that are allowed in a user's name
 ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " ", "'"]
 
-ALL_FLIGHTS = [
-    ["Air New Zealand", "NZ101", "Wellington, New Zealand", "Wellington International Airport", "WLG", datetime(2024, 7, 10, 6, 30), 150.0],
-    ["Qantas", "QF122", "Sydney, Australia", "Sydney Kingsford Smith Airport", "SYD", datetime(2024, 7, 10, 7, 45), 350.0],
-    ["Jetstar", "JQ201", "Melbourne, Australia", "Melbourne Airport", "MEL", datetime(2024, 7, 10, 8, 15), 300.0],
-    ["Singapore Airlines", "SQ286", "Singapore, Singapore", "Changi Airport", "SIN", datetime(2024, 7, 10, 9, 00), 750.0],
-    ["Cathay Pacific", "CX198", "Hong Kong, Hong Kong", "Hong Kong International Airport", "HKG", datetime(2024, 7, 10, 9, 45), 650.0],
-    ["Emirates", "EK407", "Dubai, UAE", "Dubai International Airport", "DXB", datetime(2024, 7, 10, 10, 30), 1200.0],
-    ["Virgin Australia", "VA144", "Brisbane, Australia", "Brisbane Airport", "BNE", datetime(2024, 7, 10, 11, 00), 320.0],
-    ["Fiji Airways", "FJ410", "Nadi, Fiji", "Nadi International Airport", "NAN", datetime(2024, 7, 10, 11, 45), 400.0],
-    ["LATAM Airlines", "LA800", "Santiago, Chile", "Arturo Merino Benítez Airport", "SCL", datetime(2024, 7, 10, 12, 30), 1300.0],
-    ["Air Tahiti Nui", "TN102", "Papeete, French Polynesia", "Faa'a International Airport", "PPT", datetime(2024, 7, 10, 13, 15), 900.0],
-    ["Qantas", "QF156", "Adelaide, Australia", "Adelaide Airport", "ADL", datetime(2024, 7, 10, 14, 00), 340.0],
-    ["Air New Zealand", "NZ105", "Christchurch, New Zealand", "Christchurch International Airport", "CHC", datetime(2024, 7, 10, 14, 45), 160.0],
-    ["Malaysia Airlines", "MH130", "Kuala Lumpur, Malaysia", "Kuala Lumpur International Airport", "KUL", datetime(2024, 7, 10, 15, 30), 720.0],
-    ["American Airlines", "AA83", "Los Angeles, USA", "Los Angeles International Airport", "LAX", datetime(2024, 7, 10, 16, 15), 1100.0],
-    ["United Airlines", "UA916", "San Francisco, USA", "San Francisco International Airport", "SFO", datetime(2024, 7, 10, 17, 00), 1150.0],
-    ["Air Canada", "AC34", "Vancouver, Canada", "Vancouver International Airport", "YVR", datetime(2024, 7, 10, 17, 45), 1050.0],
-    ["British Airways", "BA16", "London, UK", "Heathrow Airport", "LHR", datetime(2024, 7, 10, 18, 30), 1400.0],
-    ["Lufthansa", "LH791", "Frankfurt, Germany", "Frankfurt Airport", "FRA", datetime(2024, 7, 10, 19, 15), 1350.0],
-    ["Qatar Airways", "QR921", "Doha, Qatar", "Hamad International Airport", "DOH", datetime(2024, 7, 10, 20, 00), 1250.0],
-    ["Japan Airlines", "JL786", "Tokyo, Japan", "Narita International Airport", "NRT", datetime(2024, 7, 10, 20, 45), 980.0],
-    ["Korean Air", "KE130", "Seoul, South Korea", "Incheon International Airport", "ICN", datetime(2024, 7, 10, 21, 30), 940.0],
-    ["Thai Airways", "TG492", "Bangkok, Thailand", "Suvarnabhumi Airport", "BKK", datetime(2024, 7, 10, 22, 15), 890.0],
-    ["China Southern", "CZ306", "Guangzhou, China", "Guangzhou Baiyun International Airport", "CAN", datetime(2024, 7, 10, 23, 00), 820.0],
-    ["Air New Zealand", "NZ289", "Shanghai, China", "Shanghai Pudong International Airport", "PVG", datetime(2024, 7, 10, 23, 45), 840.0],
-    ["LATAM Airlines", "LA806", "Lima, Peru", "Jorge Chávez International Airport", "LIM", datetime(2024, 7, 11, 0, 30), 1250.0],
-    ["Qantas", "QF164", "Perth, Australia", "Perth Airport", "PER", datetime(2024, 7, 11, 1, 15), 370.0],
-    ["Air New Zealand", "NZ102", "Wellington, New Zealand", "Wellington International Airport", "WLG", datetime(2024, 7, 11, 6, 30), 150.0],
-    ["Qantas", "QF123", "Sydney, Australia", "Sydney Kingsford Smith Airport", "SYD", datetime(2024, 7, 11, 7, 45), 350.0],
-    ["Jetstar", "JQ202", "Melbourne, Australia", "Melbourne Airport", "MEL", datetime(2024, 7, 11, 8, 15), 300.0],
-    ["Singapore Airlines", "SQ287", "Singapore, Singapore", "Changi Airport", "SIN", datetime(2024, 7, 11, 9, 00), 750.0],
-    ["Cathay Pacific", "CX199", "Hong Kong, Hong Kong", "Hong Kong International Airport", "HKG", datetime(2024, 7, 11, 9, 45), 650.0],
-    ["Emirates", "EK408", "Dubai, UAE", "Dubai International Airport", "DXB", datetime(2024, 7, 11, 10, 30), 1200.0],
-    ["Virgin Australia", "VA145", "Brisbane, Australia", "Brisbane Airport", "BNE", datetime(2024, 7, 11, 11, 00), 320.0],
-    ["Fiji Airways", "FJ411", "Nadi, Fiji", "Nadi International Airport", "NAN", datetime(2024, 7, 11, 11, 45), 400.0],
-    ["LATAM Airlines", "LA801", "Santiago, Chile", "Arturo Merino Benítez Airport", "SCL", datetime(2024, 7, 11, 12, 30), 1300.0],
-    ["Air Tahiti Nui", "TN103", "Papeete, French Polynesia", "Faa'a International Airport", "PPT", datetime(2024, 7, 11, 13, 15), 900.0],
-    ["Qantas", "QF157", "Adelaide, Australia", "Adelaide Airport", "ADL", datetime(2024, 7, 11, 14, 00), 340.0],
-    ["Air New Zealand", "NZ106", "Christchurch, New Zealand", "Christchurch International Airport", "CHC", datetime(2024, 7, 11, 14, 45), 160.0],
-    ["Malaysia Airlines", "MH131", "Kuala Lumpur, Malaysia", "Kuala Lumpur International Airport", "KUL", datetime(2024, 7, 11, 15, 30), 720.0],
-    ["American Airlines", "AA84", "Los Angeles, USA", "Los Angeles International Airport", "LAX", datetime(2024, 7, 11, 16, 15), 1100.0],
-    ["United Airlines", "UA917", "San Francisco, USA", "San Francisco International Airport", "SFO", datetime(2024, 7, 11, 17, 00), 1150.0],
-    ["Air Canada", "AC35", "Vancouver, Canada", "Vancouver International Airport", "YVR", datetime(2024, 7, 11, 17, 45), 1050.0],
-    ["British Airways", "BA17", "London, UK", "Heathrow Airport", "LHR", datetime(2024, 7, 11, 18, 30), 1400.0],
-    ["Lufthansa", "LH792", "Frankfurt, Germany", "Frankfurt Airport", "FRA", datetime(2024, 7, 11, 19, 15), 1350.0],
-    ["Qatar Airways", "QR922", "Doha, Qatar", "Hamad International Airport", "DOH", datetime(2024, 7, 11, 20, 00), 1250.0],
-    ["Japan Airlines", "JL787", "Tokyo, Japan", "Narita International Airport", "NRT", datetime(2024, 7, 11, 20, 45), 980.0],
-    ["Korean Air", "KE131", "Seoul, South Korea", "Incheon International Airport", "ICN", datetime(2024, 7, 11, 21, 30), 940.0],
-    ["Thai Airways", "TG493", "Bangkok, Thailand", "Suvarnabhumi Airport", "BKK", datetime(2024, 7, 11, 22, 15), 890.0],
-    ["China Southern", "CZ307", "Guangzhou, China", "Guangzhou Baiyun International Airport", "CAN", datetime(2024, 7, 11, 23, 00), 820.0],
-    ["Air New Zealand", "NZ290", "Shanghai, China", "Shanghai Pudong International Airport", "PVG", datetime(2024, 7, 11, 23, 45), 840.0],
-    ["LATAM Airlines", "LA807", "Lima, Peru", "Jorge Chávez International Airport", "LIM", datetime(2024, 7, 12, 0, 30), 1250.0],
-    ["Qantas", "QF165", "Perth, Australia", "Perth Airport", "PER", datetime(2024, 7, 12, 1, 15), 370.0]
-    ]
-
+# Class to store all of the information about each ticket, as well as calculate the price, etc.
 class Ticket:
     def __init__(self, holder_name, airline, flight_code, destination, destination_airport, destination_airport_code, estimated_departure, age_type, base_price):
         '''Class Constructor method'''
@@ -118,6 +65,7 @@ class Ticket:
 
         return price
 
+# Class to store all the information about a user, as well as manage their tickets, calculate the total price, etc.
 class User:
     def __init__(self, name, email):
         '''Class Constructor method'''
@@ -172,6 +120,7 @@ class User:
 
             return output_str
 
+# Class to manage the program and the GUI, such as the different screens, etc.
 class App(Tk):
     # Class constant variables used to refer to each screen/frame in the program
     LOGIN_SCREEN = 0
@@ -188,6 +137,9 @@ class App(Tk):
     # still be accessed by everything that requires it.
     user = None
 
+    # Stores all of the flights available for the user to book
+    ALL_FLIGHTS = []
+
     def __init__(self):
         '''Class constructor method'''
         super().__init__()              # This is needed to properly initialise the Tk class properly
@@ -197,16 +149,15 @@ class App(Tk):
         self.rowconfigure(0, weight = 1, uniform = 'a')
         self.columnconfigure(0, weight = 1, uniform = 'a')
 
+        # Gets the flights from the csv file and saves them to the ALL_FLIGHTS list
+        self.ALL_FLIGHTS = self.get_flights()
+
         # Show the login screen frame since this will be what the user
         # should go on once they first start the program.
         self.show_frame(self.LOGIN_SCREEN)
 
     def show_frame(self, frame_index):
         '''Switch to the specified frame'''
-
-        # Hide the frame of the current screen 
-        #if self.current_frame:
-        #    self.current_frame.grid_forget()
 
         # Check which frame index has been passed to the function,
         # to determine which screen the program is trying to go to.
@@ -288,6 +239,44 @@ class App(Tk):
         # Display a farewell message and quit the program with quit().
         messagebox.showinfo("Farewell", "Have a nice day!")
         quit()
+
+    def get_flights(self):
+        '''Gets the flights from the csv file'''
+
+        # Stores a list of all flights the user can choose from
+        all_flights = []
+
+        # Opens the csv file storing the flights and loads them into the ALL_FLIGHTS list.
+        with open('flights.csv', mode = 'r') as file:
+            csvFile = csv.reader(file)
+
+            # Used to check if the line being iterated through is not the first line of the csv file.
+            # This is because, the first line contains the column headings, which are unnecessary to be
+            # stored in the all_flights list.
+            first_line = True
+
+            # Iterate through each line of the file
+            for lines in csvFile:
+                # Check that the line being iterated through is not the first line, and if it is,
+                # skip it.
+                if first_line:
+                    first_line = False
+                    continue
+                
+                # Convert the departure date/time into a datetime object.
+                # Credit: https://www.digitalocean.com/community/tutorials/python-string-to-datetime-strptime
+                date_string = lines[-2]
+                date_time_obj = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
+                lines[-2] = date_time_obj
+
+                # Convert the base price from a string to a float.
+                lines[-1] = float(lines[-1])
+
+                # Add the current line/flight to the all_flights list.
+                all_flights.append(lines)
+
+        # Return the list of the flights
+        return all_flights
 
 class LoginScreen(Frame):
     def __init__(self, master):
@@ -456,8 +445,10 @@ class AccountCreationScreen(Frame):
                 # If the user's name is not valid, tell them this and return None to exit the function (to bring them back to the login screen).
                 messagebox.showinfo("Error", "Your name contains non-alphabetic characters that are not accepted. Please enter a valid name.")
                 return None
-
+        
+        # Used to help validate user input
         user_entered_valid_email = False
+
         # Iterate through each character in user's email address to check that there exists an '@'
         # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
         # address, characters that are not allowed in a name, it becomes more difficult to validate user input
@@ -471,7 +462,22 @@ class AccountCreationScreen(Frame):
         # If the user entered an invalid email, tell them to enter a valid email address,
         # and return None to exit the function (bring them back to the login screen).
         if user_entered_valid_email == False:
-            messagebox.showinfo("Error", "Please enter a valid email address.")
+            messagebox.showinfo("Error", "Your email does not have an '@' symbol. Please enter a valid email address.")
+            return None
+
+        # Now check that the user has a full stop in their email address.
+        # Repeat the same process as before of iterating through each character in their
+        # email address, though this time check for any full stop characters.
+        user_entered_valid_email = False
+        for character in user_email:
+            if character == '.':
+                user_entered_valid_email = True
+                break
+
+        # If the user does not have any full stops in their email address, tell them to
+        # enter a valid email and exit the function to bring them back to the login screen.
+        if user_entered_valid_email == False:
+            messagebox.showinfo("Error", "Your email does not have any full stops. Please enter a valid email address.")
             return None
         
         self.write_user_to_file(user_name, user_email, user_password)
@@ -572,8 +578,8 @@ class BookFlightsScreen(Frame):
 
         # Iterate through each flight in the list of all flights and add a tuple for each
         # flight to the data list.
-        for i in range(len(ALL_FLIGHTS)):
-            data.append((f"{ALL_FLIGHTS[i][FLIGHT_AIRLINE]}", f"{ALL_FLIGHTS[i][FLIGHT_CODE]}", f"{ALL_FLIGHTS[i][FLIGHT_DEST]}", f"{ALL_FLIGHTS[i][FLIGHT_DEPT]}", f"${ALL_FLIGHTS[i][FLIGHT_BASE_PRICE]:.2f}"))
+        for i in range(len(app.ALL_FLIGHTS)):
+            data.append((f"{app.ALL_FLIGHTS[i][FLIGHT_AIRLINE]}", f"{app.ALL_FLIGHTS[i][FLIGHT_CODE]}", f"{app.ALL_FLIGHTS[i][FLIGHT_DEST]}", f"{app.ALL_FLIGHTS[i][FLIGHT_DEPT]}", f"${app.ALL_FLIGHTS[i][FLIGHT_BASE_PRICE]:.2f}"))
 
         # Insert each flight onto the tree
         for d in data:
@@ -630,7 +636,7 @@ class BookFlightsScreen(Frame):
             messagebox.showinfo("Error", "Please select a flight.")
             return None
         
-        for flight in ALL_FLIGHTS:
+        for flight in app.ALL_FLIGHTS:
                    if flight[FLIGHT_CODE] == flight_code:
                        chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
 
