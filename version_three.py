@@ -637,8 +637,8 @@ class BookFlightsScreen(Frame):
             return None
         
         for flight in app.ALL_FLIGHTS:
-                   if flight[FLIGHT_CODE] == flight_code:
-                       chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
+            if flight[FLIGHT_CODE] == flight_code:
+                chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
 
         # Convert the age entered by the user from the Entrybox to an integer value.
         # This must be done or else the program will not be able to work with the age
@@ -703,7 +703,6 @@ class BookFlightsScreen(Frame):
         else:
             messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
 
-        BookFlightsScreen.grid_remove(self)
         # After having created a ticket, the user should return back to the main menu.
         # Thus, remove the booking flight frame with .destroy() and call the main_screen() function.
         app.show_frame(App.MAIN_MENU_SCREEN)
@@ -767,13 +766,8 @@ class ViewTicketsScreen(Frame):
         scrollbar.grid(row=1, column=3, sticky='nws')
 
         # Button for the user to go back to the main menu
-        close_btn = Button(self, text = "Close", command = self.exit_screen)
+        close_btn = Button(self, text = "Close", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
         close_btn.grid(row = 3, column = 1)
-
-    def exit_screen(self):
-        '''Allow the user to return back to the main menu'''
-        
-        app.show_frame(App.MAIN_MENU_SCREEN)
 
 class RemoveTicketsScreen(Frame):
     def __init__(self, master):
@@ -863,8 +857,6 @@ class RemoveTicketsScreen(Frame):
         if ticket_to_remove == None:
             messagebox.showinfo("Error", "Please select a flight.")
             return None
-        
-        #ticket_to_remove = ticket_to_remove.split(',')
     
         # Remove the ticket specified by the user.
         app.user.remove_ticket(ticket_to_remove)
