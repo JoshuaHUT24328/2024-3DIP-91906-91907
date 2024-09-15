@@ -1,4 +1,4 @@
-# Date: 06/09/2024
+# Date: 15/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -7,6 +7,8 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 
+# Image: https://www.flickr.com/photos/umedhairesha/6756372125
+from PIL import Image, ImageTk
 from datetime import datetime
 
 import csv
@@ -33,6 +35,10 @@ SENIOR_TICKET_PRICE = 0.60
 
 # Characters that are not in the alphabet, but that are allowed in a user's name
 ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " ", "'"]
+
+# Main background colour for each screen, used in most elements so that they have the same background
+# colour as the screen that they are on.
+MAIN_BG_COLOUR = "#DAE8FC"
 
 # Class to store all of the information about each ticket, as well as calculate the price, etc.
 class Ticket:
@@ -145,6 +151,7 @@ class App(Tk):
         super().__init__()              # This is needed to properly initialise the Tk class properly
         self.title("Flight Booking App")
         self.geometry("700x400")
+        self.resizable(False, False)
         self.current_frame = None       # Initially, there is no frame, so hence initialise this to None
         self.rowconfigure(0, weight = 1, uniform = 'a')
         self.columnconfigure(0, weight = 1, uniform = 'a')
@@ -282,24 +289,35 @@ class LoginScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
         self.columnconfigure(1, weight=3, uniform='a')
-        self.rowconfigure(0, weight=2, uniform='a')
-        self.rowconfigure((1, 2, 3, 4, 5), weight=1, uniform='a')
+        self.rowconfigure(0, weight=5, uniform='a')
+        self.rowconfigure((1, 2, 3, 4, 5, 6), weight=1, uniform='a')
+
+        main_image = ImageTk.PhotoImage(Image.open("menu_image.jpg"))
+        main_image_label = Label(self, bg="#ffffff", image=main_image)
+        main_image_label.image = main_image
+        main_image_label.grid(row = 0, column = 1)
 
         # Main header text
-        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
-        header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
+        header_lbl.grid(row=1, column=0, sticky="NEWS", columnspan=3)
 
-        subtext_lbl = Label(self, text="What would you like to do?", font=("Arial", 13))
-        subtext_lbl.grid(row=1, column=1, sticky="WE")
+        subtext_lbl = Label(self, text="What would you like to do?", font=("Arial", 13, "bold"), background = MAIN_BG_COLOUR)
+        subtext_lbl.grid(row=2, column=1, sticky="WE")
 
-        login_screen_btn = Button(self, text="Login", command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
-        login_screen_btn.grid(row=2, column=1)
+        login_screen_btn = Button(self, text="Login", font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
+        login_screen_btn.grid(row=4, column=0)
 
         create_account_btn = Button(self, text="Create Account", command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN))
-        create_account_btn.grid(row=3, column=1)
+        create_account_btn.grid(row=4, column=1)
+
+        bottom_label = Label(self)
+        bottom_label.grid(row = 6, column = 0, columnspan = 3, sticky = "NEWS")
 
 class AccountLoginScreen(Frame):
     def __init__(self, master):
