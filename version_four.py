@@ -1,4 +1,4 @@
-# Date: 15/09/2024
+# Date: 16/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -295,29 +295,54 @@ class LoginScreen(Frame):
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
         self.columnconfigure(1, weight=3, uniform='a')
-        self.rowconfigure(0, weight=5, uniform='a')
-        self.rowconfigure((1, 2, 3, 4, 5, 6), weight=1, uniform='a')
+        self.rowconfigure(0, weight=6, uniform='a')
+        self.rowconfigure(1, weight=2, uniform='a')
+        self.rowconfigure(2, weight=2, uniform='a')
+        self.rowconfigure((3, 4, 5), weight=1, uniform='a')
 
+        # Main image which is to be placed at the top of the screen
+        # Used pady = 5 so that there is some space around this image, and that
+        # it does not touch the top of the window
         main_image = ImageTk.PhotoImage(Image.open("menu_image.jpg"))
         main_image_label = Label(self, bg="#ffffff", image=main_image)
         main_image_label.image = main_image
-        main_image_label.grid(row = 0, column = 1)
+        main_image_label.grid(row = 0, column = 1, pady = 5)
 
         # Main header text
         header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
-        header_lbl.grid(row=1, column=0, sticky="NEWS", columnspan=3)
+        header_lbl.grid(row=1, column=0, sticky="NESW", columnspan=3)
 
+        # Subtext
         subtext_lbl = Label(self, text="What would you like to do?", font=("Arial", 13, "bold"), background = MAIN_BG_COLOUR)
-        subtext_lbl.grid(row=2, column=1, sticky="WE")
+        subtext_lbl.grid(row=2, column=1, sticky="NSWE")
 
-        login_screen_btn = Button(self, text="Login", font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
-        login_screen_btn.grid(row=4, column=0)
+        # Frame which contains the two main buttons (Login and Create Account)
+        # Set the background to MAIN_BG_COLOUR so that this frame has the same
+        # background colour as everything else (so that the user cannot see the presence of this frame,
+        # and they just see the buttons)
+        btn_frame = Frame(self, background = MAIN_BG_COLOUR)
+        btn_frame.grid(row = 3, column = 0, columnspan=3, sticky = "NEWS")
 
-        create_account_btn = Button(self, text="Create Account", command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN))
-        create_account_btn.grid(row=4, column=1)
+        # Configure the row and columns for the button frame
+        # There are two buttons and three columns since the column in-between the buttons
+        # is used to ensure that the buttons are space out. This middle column should be much
+        # smaller than the buttons, and so it has a weight of 1, but the buttons have a weight of
+        # 30 which is much larger.
+        btn_frame.columnconfigure((0, 2), weight = 30, uniform = 'b')
+        btn_frame.columnconfigure(1, weight = 1, uniform = 'b')
+        btn_frame.rowconfigure(0, weight = 1, uniform = 'b')
 
+        # Place the login screen button in the button frame
+        login_screen_btn = Button(btn_frame, text="Login", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
+        login_screen_btn.grid(row=0, column=0, sticky = "E")
+
+        # Place the create account button in the button frame
+        create_account_btn = Button(btn_frame, text="Create Account", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN))
+        create_account_btn.grid(row=0, column=2, sticky = "W")
+
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
         bottom_label = Label(self)
-        bottom_label.grid(row = 6, column = 0, columnspan = 3, sticky = "NEWS")
+        bottom_label.grid(row = 5, column = 0, columnspan = 3, sticky = "EWS", ipady = 10)
 
 class AccountLoginScreen(Frame):
     def __init__(self, master):
@@ -327,33 +352,64 @@ class AccountLoginScreen(Frame):
         with open("accounts.json", "r") as f:
             self.accounts = json.load(f)
 
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
         self.columnconfigure(1, weight=3, uniform='a')
         self.rowconfigure(0, weight=2, uniform='a')
-        self.rowconfigure((1, 2, 3, 4, 5), weight=1, uniform='a')
+        self.rowconfigure((1, 2, 3, 4, 5, 6), weight=1, uniform='a')
 
         # Main header text
-        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
         header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
 
         # Label and entry box for user's email address
-        email_lbl = Label(self, text="Please enter your email", font=("Arial", 12))
+        email_lbl = Label(self, text="Please enter your email", font=("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         email_lbl.grid(row=1, column=1, sticky="WENS")
 
         self.email_entry = Entry(self)
         self.email_entry.grid(row=2, column=1, sticky="WE")
 
         # Label and entry box for user's password
-        password_lbl = Label(self, text="Please enter your password", font=("Arial", 12))
+        password_lbl = Label(self, text="Please enter your password", font=("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         password_lbl.grid(row=3, column=1, sticky="WENS")
 
-        self.password_entry = Entry(self, show="*")
+        self.password_entry = Entry(self, show = "*")
         self.password_entry.grid(row=4, column=1, sticky="WE")
 
+        # Used to toggle on/off the password. This is because,
+        # if the user clicks the view password button, the program will check whether this variable
+        # is True/False and use this to determine whether it should change to show a * character or not.
+        self.password_showing = False
+
+        view_password_btn = Button(self, text = "View", font = ("Arial", 9, "bold"), command = lambda: self.toggle_password())
+        view_password_btn.grid(row = 4, column = 2, sticky = "W", padx = 10)
+
         # Button for when the user has finished entering information
-        login_btn = Button(self, text="Continue", font=("Arial", 9), command=self.user_login)
+        login_btn = Button(self, text="Continue", font=("Arial", 9, "bold"), command=self.user_login)
         login_btn.grid(row=5, column=1)
+
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 6, column = 0, columnspan = 3, sticky = "EWS", ipady = 0)
+
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def toggle_password(self):
+        '''Toggle the user's password from visible to non-visible and vice versa'''
+
+        if self.password_showing:
+            self.password_entry.configure(show = "*")
+            self.password_showing = False
+        else:
+            self.password_entry.configure(show = "")
+            self.password_showing = True
 
     def user_login(self):
         '''Manage the user login part of the program'''
