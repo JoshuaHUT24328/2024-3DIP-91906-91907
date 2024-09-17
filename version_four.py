@@ -174,23 +174,28 @@ class App(Tk):
             App.VIEW_TICKETS_SCREEN: ViewTicketsScreen,
             App.REMOVE_TICKETS_SCREEN: RemoveTicketsScreen,
             App.FINISH_ORDER_SCREEN: FinishOrderScreen,
-            App.ACCOUNT_CREATION_SCREEN_TWO: AccountCreationScreenPw
+            App.ACCOUNT_CREATION_SCREEN_TWO: AccountCreationScreenTwo
         }
 
         # Show the login screen frame since this will be what the user
         # should go on once they first start the program.
-        self.show_frame(self.LOGIN_SCREEN)
+        self.show_frame(self.LOGIN_SCREEN, None)
 
-    def show_frame(self, frame_index):
+    def show_frame(self, frame_index, data_to_pass):
         '''Switch to the specified frame'''
+        # The frame_index is where it is specified which screen/frame the program is wishing
+        # to switch to, which is done by passing one of the class constants.
+        # The data_to_pass is where any data that must be passed to the new frame is put,
+        # so that the new frame can access it. For most cases, if there is no data, this will just be set as None.
+    
+        # Check whether the screen the program is trying to go to is one that
+        # has 'restrictions'/conditions that must be met for the program to go to it
+        # (e.g. the user must not have 0 tickets if they want to go to the remove ticket screen).
+        # If so, check whether the program is able to go to that screen, and return None if it cannot.
+        # Otherwise, the program will continue executing below.
 
-        # Check which frame index has been passed to the function,
-        # to determine which screen the program is trying to go to.
-        # Depending on which screen it is, either destroy the current
-        # frame and then change current_frame to match the new screen, 
-        # or first check that the program is able to go to the desired
-        # screen.
-
+        # The program checks which screen has been specified by seeing if the frame_index corresponds to
+        # one of the constants defined in the App class.
         if frame_index == App.REMOVE_TICKETS_SCREEN:
             # If the user's order is empty, tell them this and do not go to the Remove tickets screen.
             if len(app.user.tickets) == 0:
@@ -204,6 +209,9 @@ class App(Tk):
                 messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
                 return None         # Return None so that the function stops executing
 
+        # If there are no issues with the user trying to go to the screen which has been specified, the execution
+        # will continue below:
+
         # Check that the current frame is defined before trying to destroy
         # # it (to avoid any unexpected crashes).
         if self.current_frame:
@@ -214,8 +222,21 @@ class App(Tk):
         # the class references, which cannot be instantiated directly.
         FrameClass = self.screen_dictionary.get(frame_index)
 
-        # Set the current frame to be the one that corresponds to the frame index passed to the method.
-        self.current_frame = FrameClass(self)
+        # If the program is switching to either of the account creation screens, then the process to follow
+        # is slighty different because it may be required for a user's name or email to be passed through.
+        # Regardless of whether this is the case, current_frame will be set equal to the class for the specified
+        # screen, and then be instantiated.
+        if frame_index == App.ACCOUNT_CREATION_SCREEN or frame_index == App.ACCOUNT_CREATION_SCREEN_TWO:
+            # Check if there is any data to pass to the screen. If there is,
+            # then it will be the user's name and email address, so pass them as so.
+            # Otherwise, pass None as the argument for the user's name and email.
+            if data_to_pass != None:
+                self.current_frame = FrameClass(self, data_to_pass[0], data_to_pass[1])
+            else:
+                self.current_frame = FrameClass(self, None, None)
+        else:
+            # Set the current frame to be the object for the specified screen, and instantiate it.
+            self.current_frame = FrameClass(self)
 
         # Use the .grid() method to put the new frame on the screen where it is fullscreen/takes up the full window.
         self.current_frame.grid(row = 0, column = 0, sticky = "NEWS")
@@ -325,11 +346,11 @@ class LoginScreen(Frame):
         btn_frame.rowconfigure(0, weight = 1, uniform = 'b')
 
         # Place the login screen button in the button frame
-        login_screen_btn = Button(btn_frame, text="Login", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN))
+        login_screen_btn = Button(btn_frame, text="Login", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN, None))
         login_screen_btn.grid(row=0, column=0, sticky = "E")
 
         # Place the create account button in the button frame
-        create_account_btn = Button(btn_frame, text="Create Account", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN))
+        create_account_btn = Button(btn_frame, text="Create Account", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN, None))
         create_account_btn.grid(row=0, column=2, sticky = "W")
 
         # Label which goes at the bottom of each screen to store things like 'Back' buttons
@@ -390,7 +411,7 @@ class AccountLoginScreen(Frame):
         bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
         bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
-        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN))
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN, None))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def toggle_password(self):
@@ -447,10 +468,10 @@ class AccountLoginScreen(Frame):
 
         # Instantiate the User object and continue to the main part of the program.
         app.user = User(user_account["name"], user_account["email"])
-        app.show_frame(App.MAIN_MENU_SCREEN)
+        app.show_frame(App.MAIN_MENU_SCREEN, None)
 
 class AccountCreationScreen(Frame):
-    def __init__(self, master):
+    def __init__(self, master, user_name, user_email):
         super().__init__(master)
 
         # Set the background colour
@@ -474,6 +495,12 @@ class AccountCreationScreen(Frame):
         name_lbl.grid(row = 2, column = 1, sticky = "NEWS")
 
         self.name_entry = Entry(self)
+
+        # Check whether a user's name was passed to the method. If so, then insert
+        # it into the entry widget.
+        if user_name != None:
+            self.name_entry.insert(0, user_name)
+
         self.name_entry.grid(row = 3, column = 1, sticky = "WE")
         
         # Label and entry box for user's email
@@ -481,6 +508,12 @@ class AccountCreationScreen(Frame):
         email_lbl.grid(row = 4, column = 1, sticky = "NEWS")
 
         self.email_entry = Entry(self)
+        
+        # Check whether a user's email was passed to the method. If so, then insert
+        # it into the entry widget.
+        if user_email != None:
+            self.email_entry.insert(0, user_email)
+
         self.email_entry.grid(row = 5, column = 1, sticky = "WE")
         
         # Button to create account when user has finished entering information
@@ -494,7 +527,7 @@ class AccountCreationScreen(Frame):
         bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
         bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
-        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN))
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN, None))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def next_page(self):
@@ -551,11 +584,15 @@ class AccountCreationScreen(Frame):
             messagebox.showinfo("Error", "Your email does not have any full stops. Please enter a valid email address.")
             return None
         
-        app.show_frame(App.ACCOUNT_CREATION_SCREEN_TWO)
+        app.show_frame(App.ACCOUNT_CREATION_SCREEN_TWO, [user_name, user_email])
 
-class AccountCreationScreenPw(Frame):
-    def __init__(self, master):
+class AccountCreationScreenTwo(Frame):
+    def __init__(self, master, user_name, user_email):
         super().__init__(master)
+
+        # User's name and email which were gathered from the previous Account creation screen.
+        self.user_name = user_name
+        self.user_email = user_email
 
         # Set the background colour
         self.configure(background = MAIN_BG_COLOUR)
@@ -601,7 +638,7 @@ class AccountCreationScreenPw(Frame):
         bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
         bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
-        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.ACCOUNT_CREATION_SCREEN))
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.ACCOUNT_CREATION_SCREEN, [user_name, user_email]))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def user_create_account(self):
@@ -613,7 +650,7 @@ class AccountCreationScreenPw(Frame):
         self.write_user_to_file(user_name, user_email, user_password)
         # Instantiate the User object and continue to the main part of the program.
         app.user = User(user_name, user_email)
-        app.show_frame(App.MAIN_MENU_SCREEN)
+        app.show_frame(App.MAIN_MENU_SCREEN, None)
 
     def write_user_to_file(self, user_name, user_email, user_password):
         '''Write the user's account information to a file'''
@@ -652,16 +689,16 @@ class MainMenuScreen(Frame):
         subheader_text_lbl.grid(row = 1, column = 1, sticky = "NEWS")
 
         # Buttons for each option the user can choose from.
-        book_flight_btn = Button(self, text = "Book Flight", command = lambda: app.show_frame(App.BOOK_FLIGHTS_SCREEN))
+        book_flight_btn = Button(self, text = "Book Flight", command = lambda: app.show_frame(App.BOOK_FLIGHTS_SCREEN, None))
         book_flight_btn.grid(row = 2, column = 1, sticky = "WE")
 
-        show_tickets_btn = Button(self, text = "Show Tickets", command = lambda: app.show_frame(App.VIEW_TICKETS_SCREEN))
+        show_tickets_btn = Button(self, text = "Show Tickets", command = lambda: app.show_frame(App.VIEW_TICKETS_SCREEN, None))
         show_tickets_btn.grid(row = 3, column = 1, sticky = "WE")
 
-        remove_ticket_btn = Button(self, text = "Remove ticket from Order", command = lambda: app.show_frame(App.REMOVE_TICKETS_SCREEN))
+        remove_ticket_btn = Button(self, text = "Remove ticket from Order", command = lambda: app.show_frame(App.REMOVE_TICKETS_SCREEN, None))
         remove_ticket_btn.grid(row = 4, column = 1, sticky = "WE")
 
-        finish_order_btn = Button(self, text = "Finish Order", command = lambda: app.show_frame(App.FINISH_ORDER_SCREEN))
+        finish_order_btn = Button(self, text = "Finish Order", command = lambda: app.show_frame(App.FINISH_ORDER_SCREEN, None))
         finish_order_btn.grid(row = 5, column = 1, sticky = "WE")
 
         cancel_order_btn = Button(self, text = "Cancel Order", command = lambda: app.quit_program())
@@ -836,7 +873,7 @@ class BookFlightsScreen(Frame):
         BookFlightsScreen.grid_remove(self)
         # After having created a ticket, the user should return back to the main menu.
         # Thus, remove the booking flight frame with .destroy() and call the main_screen() function.
-        app.show_frame(App.MAIN_MENU_SCREEN)
+        app.show_frame(App.MAIN_MENU_SCREEN, None)
 
 class ViewTicketsScreen(Frame):
     def __init__(self, master):
@@ -903,7 +940,7 @@ class ViewTicketsScreen(Frame):
     def exit_screen(self):
         '''Allow the user to return back to the main menu'''
         
-        app.show_frame(App.MAIN_MENU_SCREEN)
+        app.show_frame(App.MAIN_MENU_SCREEN, None)
 
 class RemoveTicketsScreen(Frame):
     def __init__(self, master):
@@ -919,7 +956,7 @@ class RemoveTicketsScreen(Frame):
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
         # Back button for the user to return to the main menu
-        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
+        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN, None))
         back_btn.grid(row = 0, column = 0)
 
         # Columns for table of tickets
@@ -1000,7 +1037,7 @@ class RemoveTicketsScreen(Frame):
         app.user.remove_ticket(ticket_to_remove)
 
         messagebox.showinfo("Ticket removed", "Ticket has been removed from your order.")       # Display confirmation to the user.
-        app.show_frame(App.MAIN_MENU_SCREEN)
+        app.show_frame(App.MAIN_MENU_SCREEN, None)
 
 class FinishOrderScreen(Frame):
     def __init__(self, master):
@@ -1084,7 +1121,7 @@ class FinishOrderScreen(Frame):
         if response == "yes":
             # If the user wants to make another order, remove the finish order frame and take them to the login screen
             # with login_screen().
-            app.show_frame(App.LOGIN_SCREEN)
+            app.show_frame(App.LOGIN_SCREEN, None)
         else:
             # If the user does not want to make another order, farewell them.
             app.farewell_user()
