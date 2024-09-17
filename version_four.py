@@ -36,6 +36,10 @@ SENIOR_TICKET_PRICE = 0.60
 # Characters that are not in the alphabet, but that are allowed in a user's name
 ACCEPTED_SPECIAL_CHARACTERS = ["-", ".", " ", "'"]
 
+# The minimum length that a user's password can be. Used when the user creates their account to ensure
+# that they choose a secure enough password.
+MIN_PASSWORD_LENGTH = 8
+
 # Main background colour for each screen, used in most elements so that they have the same background
 # colour as the screen that they are on.
 MAIN_BG_COLOUR = "#DAE8FC"
@@ -474,8 +478,9 @@ class AccountCreationScreen(Frame):
     def __init__(self, master, user_name, user_email):
         super().__init__(master)
 
-        # Set the background colour
+        # Set the background colour and ensure the window is the right size
         self.configure(background = MAIN_BG_COLOUR)
+        app.geometry("700x400")
 
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
@@ -517,8 +522,8 @@ class AccountCreationScreen(Frame):
         self.email_entry.grid(row = 5, column = 1, sticky = "WE")
         
         # Button to create account when user has finished entering information
-        create_account_btn = Button(self, text = "Next", width = 15, font = ("bold"), command = self.next_page)
-        create_account_btn.grid(row = 6, column = 1)
+        next_btn = Button(self, text = "Next", width = 15, font = ("bold"), command = self.next_page)
+        next_btn.grid(row = 6, column = 1)
         
         # Label which goes at the bottom of each screen to store things like 'Back' buttons
         bottom_label = Label(self)
@@ -593,63 +598,133 @@ class AccountCreationScreenTwo(Frame):
         # User's name and email which were gathered from the previous Account creation screen.
         self.user_name = user_name
         self.user_email = user_email
-
-        # Set the background colour
+        
+        # Set the background colour and ensure the window is the right size
         self.configure(background = MAIN_BG_COLOUR)
-
+        app.geometry("700x450")
+        
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
         self.columnconfigure(1, weight=3, uniform='a')
         self.rowconfigure((0, 1), weight=2, uniform='a')
-        self.rowconfigure((2, 3, 4, 5, 6, 7), weight=1, uniform='a')
-
+        self.rowconfigure(2, weight = 3, uniform = 'a')
+        self.rowconfigure((3, 4, 5, 6, 7, 8), weight=1, uniform='a')
+        
         # Main header text
         header_lbl = Label(self, text="Create an Account", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
         header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
-
+        
         sub_header_lbl = Label(self, text = "Please choose a password", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         sub_header_lbl.grid(row = 1, column = 1, sticky = "EW")
-
-        instructions_lbl = Label(self, text = "Your Password MUST:\n-Be at least 8 characters long\n-Contain at least one number, symbol, and uppercase letter", background = MAIN_BG_COLOUR)
+        
+        instructions_lbl = Label(self, text = f"Your Password MUST:\n• Be at least {MIN_PASSWORD_LENGTH} characters long\n• Contain at least one number, symbol,\n and uppercase letter", font = ("Arial", 11, "bold"), justify = "left", background = MAIN_BG_COLOUR)
         instructions_lbl.grid(row = 2, column = 1, sticky = "NEWS")
-
+        
         # Label and entry box for user's name
         name_lbl = Label(self, text = "Password", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
         name_lbl.grid(row = 3, column = 1, sticky = "NEWS")
-
-        self.name_entry = Entry(self)
-        self.name_entry.grid(row = 4, column = 1, sticky = "WE")
         
+        self.password_one_entry = Entry(self, show = "*")
+        self.password_one_entry.grid(row = 4, column = 1, sticky = "WE")
+                
         # Label and entry box for user's email
-        email_lbl = Label(self, text = "Confirm", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
-        email_lbl.grid(row = 5, column = 1, sticky = "NEWS")
-
-        self.email_entry = Entry(self)
-        self.email_entry.grid(row = 6, column = 1, sticky = "WE")
-
-        # Button to create account when user has finished entering information
-        create_account_btn = Button(self, text = "Create Account", font = ("Arial", 9), command = self.user_create_account)
-        create_account_btn.grid(row = 7, column = 1)
+        password_confirm_lbl = Label(self, text = "Confirm", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
+        password_confirm_lbl.grid(row = 5, column = 1, sticky = "NEWS")
         
+        self.password_two_entry = Entry(self, show = "*")
+        self.password_two_entry.grid(row = 6, column = 1, sticky = "WE")
+        
+        # Button to create account when user has finished entering information
+        create_account_btn = Button(self, text = "Create Account", width = 15, font = ("bold"), command = lambda:self.user_create_account())
+        create_account_btn.grid(row = 7, column = 1)
+                
         # Label which goes at the bottom of each screen to store things like 'Back' buttons
         bottom_label = Label(self)
         bottom_label.grid(row = 8, column = 0, columnspan = 3, sticky = "EWS", ipady = 0)
-
+        
         bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
         bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
-
+        
+        # Used to toggle on/off the password. This is because,
+        # if the user clicks the view password button, the program will check whether this variable
+        # is True/False and use this to determine whether it should change to show a * character or not.
+        self.password_showing = False
+        
+        view_password_btn = Button(self, text = "View", font = ("Arial", 9, "bold"), command = lambda: self.toggle_password())
+        view_password_btn.grid(row = 6, column = 2, sticky = "W", padx = 10)
+        
         back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.ACCOUNT_CREATION_SCREEN, [user_name, user_email]))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
+    
+    def toggle_password(self):
+        '''Toggle the user's password from visible to non-visible and vice versa'''
+
+        if self.password_showing:
+            self.password_one_entry.configure(show = "*")
+            self.password_two_entry.configure(show = "*")
+            self.password_showing = False
+        else:
+            self.password_one_entry.configure(show = "")
+            self.password_two_entry.configure(show = "")
+            self.password_showing = True
 
     def user_create_account(self):
         
-        user_name = self.name_entry.get()
-        user_email = self.email_entry.get()
-        user_password = self.password_entry.get()
+        # Get the passwords entered by the user in the entry boxes
+        user_password_one = self.password_one_entry.get()
+        user_password_two = self.password_two_entry.get()
 
-        self.write_user_to_file(user_name, user_email, user_password)
+        # Start by checking that the user did not leave either of the password fields blank.
+        # If they did, tell them that they need to enter a password, and return None to exit the
+        # method.
+        if user_password_one == "" or user_password_two == "":
+            messagebox.showinfo("Error", "Please enter a password.")
+            return None
+
+        # Check that the user entered the same password in both fields.
+        # If they didn't, tell them that the passwords they entered do not match, and return None to exit the
+        # method.
+        if user_password_one != user_password_two:
+            messagebox.showinfo("Error", "The passwords you entered do not match.")
+            return None
+        
+        # Check if the user entered a password too short, and if so, tell them that their password must be
+        # at least as long as the minimum password length (which is displayed to them), and then return None
+        # to exit the method.
+        if len(user_password_one) < MIN_PASSWORD_LENGTH:
+            messagebox.showinfo("Error", f"Your password must be at least {MIN_PASSWORD_LENGTH} characters. Please enter a valid password")
+            return None
+        
+        password_contains_number = False
+        for character in user_password_one:
+            if character.isnumeric:
+                password_contains_number = True
+
+        if not password_contains_number:
+            messagebox.showinfo("Error", "Your password must contain at least one number. Please enter a valid password")
+            return None
+        
+        password_contains_symbol = False
+        for character in user_password_one:
+            if not character.isalpha():
+                password_contains_symbol = True
+
+        if not password_contains_symbol:
+            messagebox.showinfo("Error", "Your password must contain at least one symbol. Please enter a valid password")
+            return None
+        
+        password_contains_uppercase_letter = False
+        for character in user_password_one:
+            if character.isupper():
+                password_contains_uppercase_letter = True
+
+        if not password_contains_uppercase_letter:
+            messagebox.showinfo("Error", "Your password must contain at least one uppercase letter. Please enter a valid password")
+            return None
+
+        self.write_user_to_file(self.user_name, self.user_email, user_password_one)
         # Instantiate the User object and continue to the main part of the program.
-        app.user = User(user_name, user_email)
+        app.user = User(self.user_name, self.user_email)
         app.show_frame(App.MAIN_MENU_SCREEN, None)
 
     def write_user_to_file(self, user_name, user_email, user_password):
@@ -718,7 +793,7 @@ class BookFlightsScreen(Frame):
         self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
 
         # Back button for the user to return to the main menu
-        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN))
+        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN, None))
         back_btn.grid(row = 0, column = 0)
 
         # Columns for table of flights
