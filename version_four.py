@@ -1,4 +1,4 @@
-# Date: 16/09/2024
+# Date: 17/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -137,6 +137,7 @@ class App(Tk):
     VIEW_TICKETS_SCREEN = 5
     REMOVE_TICKETS_SCREEN = 6
     FINISH_ORDER_SCREEN = 7
+    ACCOUNT_CREATION_SCREEN_TWO = 8
 
     # Stores the User object when instantiated. This is so that
     # it does not need to be made a global variable, but can
@@ -159,6 +160,23 @@ class App(Tk):
         # Gets the flights from the csv file and saves them to the ALL_FLIGHTS list
         self.ALL_FLIGHTS = self.get_flights()
 
+        # Create a dictionary that stores the a reference to the class object for each screen.
+        # This is used for switching between screens, as the number corresponding to a particular screen
+        # (defined as a constant class variable above) is passed to the show_frame method below, and the
+        # respective screen is switched to. Storing a reference to each class in a dictionary like this means
+        # that there does not need to be a nested loop in the show_frame method.
+        self.screen_dictionary = {
+            App.LOGIN_SCREEN: LoginScreen, 
+            App.ACCOUNT_LOGIN_SCREEN: AccountLoginScreen,
+            App.ACCOUNT_CREATION_SCREEN: AccountCreationScreen,
+            App.MAIN_MENU_SCREEN: MainMenuScreen,
+            App.BOOK_FLIGHTS_SCREEN: BookFlightsScreen,
+            App.VIEW_TICKETS_SCREEN: ViewTicketsScreen,
+            App.REMOVE_TICKETS_SCREEN: RemoveTicketsScreen,
+            App.FINISH_ORDER_SCREEN: FinishOrderScreen,
+            App.ACCOUNT_CREATION_SCREEN_TWO: AccountCreationScreenPw
+        }
+
         # Show the login screen frame since this will be what the user
         # should go on once they first start the program.
         self.show_frame(self.LOGIN_SCREEN)
@@ -173,57 +191,31 @@ class App(Tk):
         # or first check that the program is able to go to the desired
         # screen.
 
-        # Check that the current frame is defined before trying to destroy
-        # # it (to avoid any unexpected crashes).
-        if frame_index == App.LOGIN_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = LoginScreen(self)
-
-        elif frame_index == App.ACCOUNT_LOGIN_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = AccountLoginScreen(self)
-
-        elif frame_index == App.ACCOUNT_CREATION_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = AccountCreationScreen(self)
-
-        elif frame_index == App.MAIN_MENU_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = MainMenuScreen(self)
-
-        elif frame_index == App.BOOK_FLIGHTS_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = BookFlightsScreen(self)
-
-        elif frame_index == App.VIEW_TICKETS_SCREEN:
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = ViewTicketsScreen(self)
-
-        elif frame_index == App.REMOVE_TICKETS_SCREEN:
+        if frame_index == App.REMOVE_TICKETS_SCREEN:
             # If the user's order is empty, tell them this and do not go to the Remove tickets screen.
             if len(app.user.tickets) == 0:
                 messagebox.showinfo("Error", "Your order is empty so you have no tickets to remove.")
                 return None                 # Return None so as to exit the method.
-            if self.current_frame:
-                self.current_frame.destroy()
-            self.current_frame = RemoveTicketsScreen(self)
 
         elif frame_index == App.FINISH_ORDER_SCREEN:
             # Start by checking if the user's order is empty, and if so, display a message
             # and do not take them to the Finish order screen.
             if len(app.user.tickets) == 0:
                 messagebox.showinfo("Error", "Your order is empty so you cannot finish it.")
-                return None         # Return None so that the function stops executing, and does not try to
-            else:                   # put the same frame on the screen again (last line of function)
-                if self.current_frame:
-                    self.current_frame.destroy()
-                self.current_frame = FinishOrderScreen(self)
+                return None         # Return None so that the function stops executing
+
+        # Check that the current frame is defined before trying to destroy
+        # # it (to avoid any unexpected crashes).
+        if self.current_frame:
+            self.current_frame.destroy()
+
+        # Get the value in the dictionary (the screen class) and store it in a new object
+        # so that it can be instantiated. This is necessary because the dictionary only stores
+        # the class references, which cannot be instantiated directly.
+        FrameClass = self.screen_dictionary.get(frame_index)
+
+        # Set the current frame to be the one that corresponds to the frame index passed to the method.
+        self.current_frame = FrameClass(self)
 
         # Use the .grid() method to put the new frame on the screen where it is fullscreen/takes up the full window.
         self.current_frame.grid(row = 0, column = 0, sticky = "NEWS")
@@ -388,7 +380,7 @@ class AccountLoginScreen(Frame):
         view_password_btn.grid(row = 4, column = 2, sticky = "W", padx = 10)
 
         # Button for when the user has finished entering information
-        login_btn = Button(self, text="Continue", font=("Arial", 9, "bold"), command=self.user_login)
+        login_btn = Button(self, text="Continue", width = 15, font = ("bold"), command=self.user_login)
         login_btn.grid(row=5, column=1)
 
         # Label which goes at the bottom of each screen to store things like 'Back' buttons
@@ -461,52 +453,57 @@ class AccountCreationScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
         # Configure the rows and columns to be used in this frame.
         self.columnconfigure((0, 2), weight=2, uniform='a')
         self.columnconfigure(1, weight=3, uniform='a')
         self.rowconfigure((0, 1), weight=2, uniform='a')
-        self.rowconfigure((2, 3, 4, 5, 6, 7, 8), weight=1, uniform='a')
+        self.rowconfigure((2, 3, 4, 5, 6, 7), weight=1, uniform='a')
 
         # Main header text
-        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20))
+        header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
         header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
 
-        sub_header_lbl = Label(self, text = "Please enter the following information", font = ("Arial", 12))
+        sub_header_lbl = Label(self, text = "Please enter the following information", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         sub_header_lbl.grid(row = 1, column = 1, sticky = "EW")
 
         # Label and entry box for user's name
-        name_lbl = Label(self, text = "Name", font = ("Arial", 10))
+        name_lbl = Label(self, text = "Name", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
         name_lbl.grid(row = 2, column = 1, sticky = "NEWS")
 
         self.name_entry = Entry(self)
         self.name_entry.grid(row = 3, column = 1, sticky = "WE")
         
         # Label and entry box for user's email
-        email_lbl = Label(self, text = "Email", font = ("Arial", 10))
+        email_lbl = Label(self, text = "Email", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
         email_lbl.grid(row = 4, column = 1, sticky = "NEWS")
 
         self.email_entry = Entry(self)
         self.email_entry.grid(row = 5, column = 1, sticky = "WE")
         
-        # Label and entry box for user's password
-        password_lbl = Label(self, text = "Password", font = ("Arial", 10))
-        password_lbl.grid(row = 6, column = 1, sticky = "NEWS")
-
-        self.password_entry = Entry(self)
-        self.password_entry.grid(row = 7, column = 1, sticky = "WE")
-
         # Button to create account when user has finished entering information
-        create_account_btn = Button(self, text = "Create Account", font = ("Arial", 9), command = self.user_create_account)
-        create_account_btn.grid(row = 8, column = 1)
+        create_account_btn = Button(self, text = "Next", width = 15, font = ("bold"), command = self.next_page)
+        create_account_btn.grid(row = 6, column = 1)
+        
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 7, column = 0, columnspan = 3, sticky = "EWS", ipady = 0)
 
-    def user_create_account(self):
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def next_page(self):
         '''Manage the account creation part of the program'''
 
         user_name = self.name_entry.get()
         user_email = self.email_entry.get()
-        user_password = self.password_entry.get()
 
-        if len(user_name) == 0 or len(user_email) == 0 or len(user_password) == 0:
+        if len(user_name) == 0 or len(user_email) == 0:
             messagebox.showinfo("Incomplete section(s)", "Please complete the form by filling in each section.")
             return None
         
@@ -554,6 +551,65 @@ class AccountCreationScreen(Frame):
             messagebox.showinfo("Error", "Your email does not have any full stops. Please enter a valid email address.")
             return None
         
+        app.show_frame(App.ACCOUNT_CREATION_SCREEN_TWO)
+
+class AccountCreationScreenPw(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
+        # Configure the rows and columns to be used in this frame.
+        self.columnconfigure((0, 2), weight=2, uniform='a')
+        self.columnconfigure(1, weight=3, uniform='a')
+        self.rowconfigure((0, 1), weight=2, uniform='a')
+        self.rowconfigure((2, 3, 4, 5, 6, 7), weight=1, uniform='a')
+
+        # Main header text
+        header_lbl = Label(self, text="Create an Account", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
+        header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
+
+        sub_header_lbl = Label(self, text = "Please choose a password", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        sub_header_lbl.grid(row = 1, column = 1, sticky = "EW")
+
+        instructions_lbl = Label(self, text = "Your Password MUST:\n-Be at least 8 characters long\n-Contain at least one number, symbol, and uppercase letter", background = MAIN_BG_COLOUR)
+        instructions_lbl.grid(row = 2, column = 1, sticky = "NEWS")
+
+        # Label and entry box for user's name
+        name_lbl = Label(self, text = "Password", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
+        name_lbl.grid(row = 3, column = 1, sticky = "NEWS")
+
+        self.name_entry = Entry(self)
+        self.name_entry.grid(row = 4, column = 1, sticky = "WE")
+        
+        # Label and entry box for user's email
+        email_lbl = Label(self, text = "Confirm", font = ("Arial", 10, "bold"), background = MAIN_BG_COLOUR)
+        email_lbl.grid(row = 5, column = 1, sticky = "NEWS")
+
+        self.email_entry = Entry(self)
+        self.email_entry.grid(row = 6, column = 1, sticky = "WE")
+
+        # Button to create account when user has finished entering information
+        create_account_btn = Button(self, text = "Create Account", font = ("Arial", 9), command = self.user_create_account)
+        create_account_btn.grid(row = 7, column = 1)
+        
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 8, column = 0, columnspan = 3, sticky = "EWS", ipady = 0)
+
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.ACCOUNT_CREATION_SCREEN))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def user_create_account(self):
+        
+        user_name = self.name_entry.get()
+        user_email = self.email_entry.get()
+        user_password = self.password_entry.get()
+
         self.write_user_to_file(user_name, user_email, user_password)
         # Instantiate the User object and continue to the main part of the program.
         app.user = User(user_name, user_email)
