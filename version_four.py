@@ -1,4 +1,4 @@
-# Date: 19/09/2024
+# Date: 09/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -1065,6 +1065,11 @@ class ViewTicketsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
+        
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
+        app.geometry("700x400")
 
         # Configure the rows and columns for widgets on this frame. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
@@ -1073,7 +1078,10 @@ class ViewTicketsScreen(Frame):
         self.columnconfigure(1, weight = 7, uniform = 'a')
         self.rowconfigure(0, weight = 2, uniform = 'a')
         self.rowconfigure(1, weight = 10, uniform = 'a')
-        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+        self.rowconfigure((2, 3), weight = 1, uniform = 'a')
+
+        header_text_lbl = Label(self, text = "View Tickets", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
 
         '''Create the widgets for this windows'''
         # Columns for table of tickets
@@ -1119,9 +1127,16 @@ class ViewTicketsScreen(Frame):
         tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=1, column=3, sticky='nws')
 
-        # Button for the user to go back to the main menu
-        close_btn = Button(self, text = "Close", command = self.exit_screen)
-        close_btn.grid(row = 3, column = 1)
+
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 3, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.MAIN_MENU_SCREEN, None))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def exit_screen(self):
         '''Allow the user to return back to the main menu'''
