@@ -1,4 +1,4 @@
-# Date: 17/09/2024
+# Date: 19/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -142,6 +142,7 @@ class App(Tk):
     REMOVE_TICKETS_SCREEN = 6
     FINISH_ORDER_SCREEN = 7
     ACCOUNT_CREATION_SCREEN_TWO = 8
+    BOOK_FLIGHTS_SCREEN_TWO = 9
 
     # Stores the User object when instantiated. This is so that
     # it does not need to be made a global variable, but can
@@ -178,7 +179,8 @@ class App(Tk):
             App.VIEW_TICKETS_SCREEN: ViewTicketsScreen,
             App.REMOVE_TICKETS_SCREEN: RemoveTicketsScreen,
             App.FINISH_ORDER_SCREEN: FinishOrderScreen,
-            App.ACCOUNT_CREATION_SCREEN_TWO: AccountCreationScreenTwo
+            App.ACCOUNT_CREATION_SCREEN_TWO: AccountCreationScreenTwo,
+            App.BOOK_FLIGHTS_SCREEN_TWO: BookFlightsScreenTwo
         }
 
         # Show the login screen frame since this will be what the user
@@ -238,6 +240,8 @@ class App(Tk):
                 self.current_frame = FrameClass(self, data_to_pass[0], data_to_pass[1])
             else:
                 self.current_frame = FrameClass(self, None, None)
+        elif frame_index == App.BOOK_FLIGHTS_SCREEN_TWO:
+            self.current_frame = FrameClass(self, data_to_pass)
         else:
             # Set the current frame to be the object for the specified screen, and instantiate it.
             self.current_frame = FrameClass(self)
@@ -536,7 +540,7 @@ class AccountCreationScreen(Frame):
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def next_page(self):
-        '''Manage the account creation part of the program'''
+        '''Validate the user's input and/or take them to the next screen if they are able to'''
 
         user_name = self.name_entry.get()
         user_email = self.email_entry.get()
@@ -669,6 +673,7 @@ class AccountCreationScreenTwo(Frame):
             self.password_showing = True
 
     def user_create_account(self):
+        ''''''
         
         # Get the passwords entered by the user in the entry boxes
         user_password_one = self.password_one_entry.get()
@@ -695,29 +700,45 @@ class AccountCreationScreenTwo(Frame):
             messagebox.showinfo("Error", f"Your password must be at least {MIN_PASSWORD_LENGTH} characters. Please enter a valid password")
             return None
         
+        # Check whether the password contains a number by iterating through each character in the password,
+        # and setting password_contains_number to True if/when a number is found.
         password_contains_number = False
         for character in user_password_one:
             if character.isnumeric:
                 password_contains_number = True
 
+        # If password_contains_number is not True, then there were no numbers found in the user's password.
+        # Hence, tell them that their password must contain a number, and then return None to exit the 
+        # method.
         if not password_contains_number:
             messagebox.showinfo("Error", "Your password must contain at least one number. Please enter a valid password")
             return None
         
+        # Check whether the password contains any uppercase letters by iterating through each character in the password,
+        # and setting password_contains_symbol to True if/when there is a character that is not in the alphabet, nor is
+        # a number (in such a case, the character must be a symbol).
         password_contains_symbol = False
         for character in user_password_one:
-            if not character.isalpha():
+            if not character.isalpha() and not character.isnumeric():
                 password_contains_symbol = True
 
+        # If password_contains_symbol is not True, then there were no symbols found in the user's password.
+        # Hence, tell them that their password must contain a symbol, and then return None to exit the 
+        # method.
         if not password_contains_symbol:
             messagebox.showinfo("Error", "Your password must contain at least one symbol. Please enter a valid password")
             return None
         
+        # Check whether the password contains any uppercase letters by iterating through each character in the password,
+        # and setting password_contains_uppercase_letter to True if/when an uppercase letter is found.
         password_contains_uppercase_letter = False
         for character in user_password_one:
             if character.isupper():
                 password_contains_uppercase_letter = True
 
+        # If password_contains_uppercase_letter is not True, then there were no uppercase letters found in the user's password.
+        # Hence, tell them that their password must contain an uppercase letter, and then return None to exit the 
+        # method.
         if not password_contains_uppercase_letter:
             messagebox.showinfo("Error", "Your password must contain at least one uppercase letter. Please enter a valid password")
             return None
@@ -748,53 +769,78 @@ class MainMenuScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
+        app.geometry("400x575")
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
         # Configure the rows and columns to be used in this frame. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
         # fix the uniformity problem that arises with the grid method.
-        self.columnconfigure((0, 2), weight = 2, uniform = 'a')
-        self.columnconfigure(1, weight = 3, uniform = 'a')
-        self.rowconfigure(0, weight = 2, uniform = 'a')
-        self.rowconfigure((1, 2, 3, 4, 5, 6), weight = 1, uniform = 'a')
+        self.columnconfigure((0, 2), weight = 1, uniform = 'a')
+        self.columnconfigure(1, weight = 5, uniform = 'a')
+        self.rowconfigure(0, weight = 6, uniform = 'a')
+        self.rowconfigure((1, 2, 3, 4, 5, 6, 7, 8), weight = 1, uniform = 'a')
+
+        # Main image which is to be placed at the top of the screen
+        # Used pady = 5 so that there is some space around this image, and that
+        # it does not touch the top of the window
+        main_image = ImageTk.PhotoImage(Image.open("Picture1.jpg"))
+        main_image_label = Label(self, bg="#ffffff", image=main_image)
+        main_image_label.image = main_image
+        main_image_label.grid(row = 0, column = 1, pady = 5)
 
         # Labels for the text on the screen
-        header_text_lbl = Label(self, text = "Flight Booking App", font = ("Arial", 20))
-        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 3)
+        header_text_lbl = Label(self, text = "Main Menu", font = ("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 1, column = 0, sticky = "NEWS", columnspan = 3)
 
-        subheader_text_lbl = Label(self, text = "What would you like to do?", font = ("Arial", 12))
-        subheader_text_lbl.grid(row = 1, column = 1, sticky = "NEWS")
+        subheader_text_lbl = Label(self, text = "What would you like to do?", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        subheader_text_lbl.grid(row = 2, column = 1, sticky = "NEWS")
 
         # Buttons for each option the user can choose from.
-        book_flight_btn = Button(self, text = "Book Flight", command = lambda: app.show_frame(App.BOOK_FLIGHTS_SCREEN, None))
-        book_flight_btn.grid(row = 2, column = 1, sticky = "WE")
+        book_flight_btn = Button(self, text = "Book Flight", font = ("bold"), command = lambda: app.show_frame(App.BOOK_FLIGHTS_SCREEN, None))
+        book_flight_btn.grid(row = 3, column = 1, sticky = "WE")
 
-        show_tickets_btn = Button(self, text = "Show Tickets", command = lambda: app.show_frame(App.VIEW_TICKETS_SCREEN, None))
-        show_tickets_btn.grid(row = 3, column = 1, sticky = "WE")
+        show_tickets_btn = Button(self, text = "Show Tickets", font = ("bold"), command = lambda: app.show_frame(App.VIEW_TICKETS_SCREEN, None))
+        show_tickets_btn.grid(row = 4, column = 1, sticky = "WE")
 
-        remove_ticket_btn = Button(self, text = "Remove ticket from Order", command = lambda: app.show_frame(App.REMOVE_TICKETS_SCREEN, None))
-        remove_ticket_btn.grid(row = 4, column = 1, sticky = "WE")
+        remove_ticket_btn = Button(self, text = "Remove ticket from Order", font = ("bold"), command = lambda: app.show_frame(App.REMOVE_TICKETS_SCREEN, None))
+        remove_ticket_btn.grid(row = 5, column = 1, sticky = "WE")
 
-        finish_order_btn = Button(self, text = "Finish Order", command = lambda: app.show_frame(App.FINISH_ORDER_SCREEN, None))
-        finish_order_btn.grid(row = 5, column = 1, sticky = "WE")
+        finish_order_btn = Button(self, text = "Finish Order", font = ("bold"), command = lambda: app.show_frame(App.FINISH_ORDER_SCREEN, None))
+        finish_order_btn.grid(row = 6, column = 1, sticky = "WE")
 
-        cancel_order_btn = Button(self, text = "Cancel Order", command = lambda: app.quit_program())
-        cancel_order_btn.grid(row = 6, column = 1, sticky = "WE")
+        cancel_order_btn = Button(self, text = "Cancel Order", font = ("bold"), command = lambda: app.quit_program())
+        cancel_order_btn.grid(row = 7, column = 1, sticky = "WE")
+        
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 8, column = 0, columnspan = 3, sticky = "EWS", ipady = 5)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
 class BookFlightsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
+
+        app.geometry("700x400")
+
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
 
         # Create the columns and rows as required for everything. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
         # fix the uniformity problem that arises with the grid method.
         self.columnconfigure((0, 2), weight = 2, uniform = 'a')
         self.columnconfigure(1, weight = 7, uniform = 'a')
-        self.rowconfigure(0, weight = 2, uniform = 'a')
-        self.rowconfigure(1, weight = 10, uniform = 'a')
-        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+        self.rowconfigure(0, weight = 3, uniform = 'a')
+        self.rowconfigure(1, weight = 13, uniform = 'a')
+        self.rowconfigure(2, weight = 2, uniform = 'a')
+        self.rowconfigure(3, weight = 2, uniform = 'a')
+        self.rowconfigure(4, weight = 2, uniform = 'a')
 
-        # Back button for the user to return to the main menu
-        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN, None))
-        back_btn.grid(row = 0, column = 0)
+        header_text_lbl = Label(self, text = "Book a Flight", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
 
         # Columns for table of flights
         column = ("Airline", "Code", "Destination", "Date/Time", "Price")
@@ -848,39 +894,106 @@ class BookFlightsScreen(Frame):
         tree.bind("<<TreeviewSelect>>", on_row_select)
 
         # Below are the labels for all of the text on this frame, as well as the entry boxes for user input.
-        flight_text_lbl = Label(self, text = "Click the flight to select it", font = ("Arial", 10))
-        flight_text_lbl.grid(row = 2, column = 1, sticky = "W")
-
-        age_text_lbl = Label(self, text = "Age:", font = ("Arial", 10))
-        age_text_lbl.grid(row = 3, column = 1, sticky = "W")
-
-        age_text_entry = Entry(self)
-        age_text_entry.grid(row = 3, column = 1)
-
-        name_text_lbl = Label(self, text = "Ticket holder Name:", font = ("Arial", 10))
-        name_text_lbl.grid(row = 4, column = 1, sticky = "W")
-
-        name_text_entry = Entry(self)
-        name_text_entry.grid(row = 4, column = 1)
+        flight_text_lbl = Label(self, text = "Please select a flight to book it", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        flight_text_lbl.grid(row = 2, column = 0, sticky = "NESW", columnspan = 4)
         
         # Button for when the user is finished entering information into the entry boxes.
         # Note that I had to use lambda in order for the command part of the button
         # to work with passing in inputs to the create_ticket() function.
-        continue_btn = Button(self, text = "Continue", command = lambda: self.create_ticket(self.selected_flight_code, age_text_entry.get(), name_text_entry.get()))
-        continue_btn.grid(row = 5, column = 1)
+        continue_btn = Button(self, text = "Continue", font = ("bold"), command = lambda: self.next_page(self.selected_flight_code))
+        continue_btn.grid(row = 3, column = 0, columnspan = 4)
 
-    def create_ticket(self, flight_code, age, holder_name):
-        '''Validate information entered by user and instantiate a ticket object'''
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 8, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.MAIN_MENU_SCREEN, None))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def next_page(self, flight_code):
+        '''Get the flight the user has selected and/or take them to the next screen if they have selected a flight'''
+        
         # If the user did not select a flight, tell them this, and return None so that
         # the function will stop executing.
         if flight_code == None:
             messagebox.showinfo("Error", "Please select a flight.")
             return None
         
+        # If the program execution reaches this point, it means that the user has selected a flight.
+        # Thus, take them to the next screen, and pass the flight code of the flight they selected as
+        # the data to pass to the new frame.
+        app.show_frame(App.BOOK_FLIGHTS_SCREEN_TWO, flight_code)
+
+class BookFlightsScreenTwo(Frame):
+    def __init__(self, master, flight_code):
+        super().__init__(master)
+
+        self.flight_code = flight_code
+
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+
+        self.columnconfigure((0, 2), weight = 1, uniform = 'a')
+        self.columnconfigure(1, weight = 3, uniform = 'a')
+        self.rowconfigure(0, weight = 2, uniform = 'a')
+        self.rowconfigure(1, weight = 3, uniform = 'a')
+        self.rowconfigure((2, 3, 4, 5, 6, 7, 8), weight = 1, uniform = 'a')
+
+        # Determine which flight in the list of all flights that the user has chosen
         for flight in app.ALL_FLIGHTS:
-                   if flight[FLIGHT_CODE] == flight_code:
-                       chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
+            if flight[FLIGHT_CODE] == flight_code:
+                self.chosen_flight = flight      # Store the flight chosen by the user in a new variable (chosen_flight)
+
+        header_text_lbl = Label(self, text = "Book a Flight", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
+
+        flight_info_lbl = Label(self, text = f"Airline: {self.chosen_flight[FLIGHT_AIRLINE]}\nFlight Code: {self.chosen_flight[FLIGHT_CODE]}\nDestination: {self.chosen_flight[FLIGHT_DEST]}\nDate/Time: {self.chosen_flight[FLIGHT_DEPT]}\nPrice: ${self.chosen_flight[FLIGHT_BASE_PRICE]:.2f}", font = ("Arial", 11, "bold"), justify = "left", background = MAIN_BG_COLOUR)
+        flight_info_lbl.grid(row = 1, column = 1, sticky = "NEWS")
+
+        information_text_lbl = Label(self, text = "Please enter the following information about the ticketholder", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        information_text_lbl.grid(row = 2, column = 0, columnspan = 3)
+
+        name_text_lbl = Label(self, text = "Name", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        name_text_lbl.grid(row = 3, column = 1, sticky = "W")
+
+        name_text_entry = Entry(self)
+        name_text_entry.grid(row = 4, column = 1, sticky = "EW")
+        
+        age_text_lbl = Label(self, text = "Age", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        age_text_lbl.grid(row = 5, column = 1, sticky = "W")
+
+        age_text_entry = Entry(self)
+        age_text_entry.grid(row = 6, column = 1, sticky = "EW")
+
+        # Button for when the user is finished entering information into the entry boxes.
+        # Note that I had to use lambda in order for the command part of the button
+        # to work with passing in inputs to the create_ticket() function.
+        continue_btn = Button(self, text = "Continue", font = ("bold"), command = lambda: self.create_ticket(age_text_entry.get(), name_text_entry.get()))
+        continue_btn.grid(row = 7, column = 0, columnspan = 4)
+
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 8, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.BOOK_FLIGHTS_SCREEN, None))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def create_ticket(self, age, holder_name):
+        '''Validate information entered by user and instantiate a ticket object'''
+
+        if age == '' or holder_name == '':
+            messagebox.showinfo("Error", "Please enter all of the ticketholder's information.")
+            return None
+        
+        if not age.isnumeric():
+            messagebox.showinfo("Error", "Please enter a valid age.")
+            return None
 
         # Convert the age entered by the user from the Entrybox to an integer value.
         # This must be done or else the program will not be able to work with the age
@@ -929,23 +1042,21 @@ class BookFlightsScreen(Frame):
 
         # If the program reaches this point, it means that the details provided by the user have passed validation and so are correct.
         # Thus, instantiate a Ticket object with the relevant information and add it to the user's tickets.
-        ticket = Ticket(holder_name, chosen_flight[FLIGHT_AIRLINE], chosen_flight[FLIGHT_CODE], chosen_flight[FLIGHT_DEST], chosen_flight[FLIGHT_DEST_AIRPORT], chosen_flight[FLIGHT_DEST_AIRPORT_CODE], chosen_flight[FLIGHT_DEPT], age_type, chosen_flight[FLIGHT_BASE_PRICE])
+        ticket = Ticket(holder_name, self.chosen_flight[FLIGHT_AIRLINE], self.chosen_flight[FLIGHT_CODE], self.chosen_flight[FLIGHT_DEST], self.chosen_flight[FLIGHT_DEST_AIRPORT], self.chosen_flight[FLIGHT_DEST_AIRPORT_CODE], self.chosen_flight[FLIGHT_DEPT], age_type, self.chosen_flight[FLIGHT_BASE_PRICE])
         app.user.add_ticket(ticket)
 
         # Check if the user's ticket qualified for a discount because of the ticket holder age.
         # If so, display a message to tell the user this, and then display another message as confirmation
         # for their ticket. Even if the user does not qualify for a discount based on their age,
         # still display a confirmation message for their ticket.
-        if age_type == "Child":
-            messagebox.showinfo("Discount information", f"This ticket qualifies for a Child's discount of {(1 - CHILD_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.")
-            messagebox.showinfo("Confirmation", f"Child's Ticket added to order.")
-        elif age_type == "Senior":
-            messagebox.showinfo("Discount information", f"This ticket qualifies for a Senior's discount of {(1 - SENIOR_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.")
-            messagebox.showinfo("Confirmation", f"Senior's Ticket added to order.")
-        else:
-            messagebox.showinfo("Confirmation", "Adult's Ticket added to order")
 
-        BookFlightsScreen.grid_remove(self)
+        if age_type == "Child":
+            messagebox.showinfo("Discount + Confirmation", f"This ticket qualifies for a Child's discount of {(1 - CHILD_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.\n\nThe Child's ticket has been added to the order.")
+        elif age_type == "Senior":
+            messagebox.showinfo("Discount + Confirmation", f"This ticket qualifies for a Senior's discount of {(1 - SENIOR_TICKET_PRICE) * 100}%, bringing the price down to ${ticket.price:.2f}.\n\nThe Senior's ticket has been added to the order.")
+        else:
+            messagebox.showinfo("Confirmation", "The Adult's ticket has been added to the order.")
+
         # After having created a ticket, the user should return back to the main menu.
         # Thus, remove the booking flight frame with .destroy() and call the main_screen() function.
         app.show_frame(App.MAIN_MENU_SCREEN, None)
