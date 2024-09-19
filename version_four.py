@@ -1,4 +1,4 @@
-# Date: 09/09/2024
+# Date: 19/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -1127,7 +1127,6 @@ class ViewTicketsScreen(Frame):
         tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=1, column=3, sticky='nws')
 
-
         # Label which goes at the bottom of each screen to store things like 'Back' buttons
         bottom_label = Label(self)
         bottom_label.grid(row = 3, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
@@ -1138,14 +1137,11 @@ class ViewTicketsScreen(Frame):
         back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.MAIN_MENU_SCREEN, None))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
-    def exit_screen(self):
-        '''Allow the user to return back to the main menu'''
-        
-        app.show_frame(App.MAIN_MENU_SCREEN, None)
-
 class RemoveTicketsScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
+
+        app.geometry("700x400")
 
         # Configure the rows and columns of the ticket removal screen. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
@@ -1153,12 +1149,14 @@ class RemoveTicketsScreen(Frame):
         self.columnconfigure((0, 2), weight = 2, uniform = 'a')
         self.columnconfigure(1, weight = 7, uniform = 'a')
         self.rowconfigure(0, weight = 2, uniform = 'a')
-        self.rowconfigure(1, weight = 10, uniform = 'a')
-        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
-
-        # Back button for the user to return to the main menu
-        back_btn = Button(self, text = "Back", command = lambda: app.show_frame(App.MAIN_MENU_SCREEN, None))
-        back_btn.grid(row = 0, column = 0)
+        self.rowconfigure(1, weight = 9, uniform = 'a')
+        self.rowconfigure((2, 3, 4), weight = 2, uniform = 'a')
+        
+        # Set the background colour
+        self.configure(background = MAIN_BG_COLOUR)
+        
+        header_text_lbl = Label(self, text = "Remove Tickets", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
 
         # Columns for table of tickets
         column = ("Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
@@ -1216,12 +1214,22 @@ class RemoveTicketsScreen(Frame):
         tree.bind("<<TreeviewSelect>>", on_row_select)
 
         # Label to tell the user to remove their ticket.
-        remove_text_lbl = Label(self, text = "Select the ticket you wish to remove", font = ("Arial", 10))
-        remove_text_lbl.grid(row = 3, column = 1, sticky = "W")
+        remove_text_lbl = Label(self, text = "Select the ticket you wish to remove", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        remove_text_lbl.grid(row = 2, column = 0, columnspan = 4)
 
         # Button for when user has entered their ticket number.
-        remove_btn = Button(self, text = "Remove", command = lambda: self.remove_users_ticket(self.selected_flight_code))
-        remove_btn.grid(row = 4, column = 1)
+        continue_btn = Button(self, text = "Remove", font = ("bold"), command = lambda: self.remove_users_ticket(self.selected_flight_code))
+        continue_btn.grid(row = 3, column = 0, columnspan = 4)
+
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 4, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.MAIN_MENU_SCREEN, None))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def remove_users_ticket(self, ticket_to_remove):
         '''Remove ticket from order'''
@@ -1231,14 +1239,20 @@ class RemoveTicketsScreen(Frame):
         if ticket_to_remove == None:
             messagebox.showinfo("Error", "Please select a flight.")
             return None
-        
-        #ticket_to_remove = ticket_to_remove.split(',')
     
         # Remove the ticket specified by the user.
         app.user.remove_ticket(ticket_to_remove)
 
+        # Display a confirmation message to the user that their ticket has been removed.
         messagebox.showinfo("Ticket removed", "Ticket has been removed from your order.")       # Display confirmation to the user.
-        app.show_frame(App.MAIN_MENU_SCREEN, None)
+        
+        # Depending on whether the user has any more tickets left, either stay on the remove
+        # tickets screen (though calling the show_frame method again to 'refresh' the screen)
+        # or exit to the main menu.
+        if len(app.user.tickets) != 0:
+            app.show_frame(App.REMOVE_TICKETS_SCREEN, None)
+        else:
+            app.show_frame(App.MAIN_MENU_SCREEN, None)
 
 class FinishOrderScreen(Frame):
     def __init__(self, master):
