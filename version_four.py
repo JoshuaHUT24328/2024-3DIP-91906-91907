@@ -1258,18 +1258,25 @@ class FinishOrderScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
+        app.geometry("700x400")
+
+        self.configure(background = MAIN_BG_COLOUR)
+
         # Configure the rows and columns for widgets. Doing this manually means that I can
         # adjust the relative sizes of each column/row (from setting the weight). It also means that I can
         # fix the uniformity problem that arises with the grid method.
         self.columnconfigure((0, 2), weight = 2, uniform = 'a')
         self.columnconfigure(1, weight = 7, uniform = 'a')
-        self.rowconfigure(0, weight = 2, uniform = 'a')
-        self.rowconfigure(1, weight = 10, uniform = 'a')
-        self.rowconfigure((2, 3, 4, 5), weight = 1, uniform = 'a')
+        self.rowconfigure((0, 1), weight = 1, uniform = 'a')
+        self.rowconfigure(2, weight = 6, uniform = 'a')
+        self.rowconfigure((3, 4, 5), weight = 1, uniform = 'a')
+
+        header_text_lbl = Label(self, text = "Book a Flight", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
 
         # Label to display the user's name and email
-        user_info_text_lbl = Label(self, text = f"Summary of Tickets by: {app.user.name} ({app.user.email})")
-        user_info_text_lbl.grid(row = 0, column = 1)
+        user_info_text_lbl = Label(self, text = f"Summary of Order for: {app.user.name} ({app.user.email})", font = ("Arial", 12, "bold"),  background = MAIN_BG_COLOUR)
+        user_info_text_lbl.grid(row = 1, column = 0, columnspan = 4)
 
         # Columns for table of tickets
         column = ("Name", "Airline", "Code", "Destination", "Type", "Date/Time", "Price")
@@ -1307,29 +1314,39 @@ class FinishOrderScreen(Frame):
             tree.insert('', END, values = d)
 
         # Use the grid method to put the tree table onto the window
-        tree.grid(row=1, column=0, columnspan = 3, sticky='news')
+        tree.grid(row=2, column=0, columnspan = 3, sticky='news')
 
         # Add a scrollbar to the table of tickets
         scrollbar = ttk.Scrollbar(self, orient=VERTICAL, command=tree.yview)
         tree.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=1, column=3, sticky='nws')
+        scrollbar.grid(row=2, column=3, sticky='nws')
 
         # Label to display the total price of the user's order
-        total_price_lbl = Label(self, text = f"Total Price: ${app.user.calculate_total_price()}")
-        total_price_lbl.grid(row = 3, column = 0)
+        total_price_lbl = Label(self, text = f"Total Price: ${app.user.calculate_total_price()}", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        total_price_lbl.grid(row = 3, column = 1)
 
         # Button for when the user wants to move on, either to quit the program, or to make another order.
-        continue_btn = Button(self, text = "Continue", command = self.continue_command)
-        continue_btn.grid(row = 3, column = 1)
+        continue_btn = Button(self, text = "Continue", font = ("bold"), command = lambda:self.continue_command())
+        continue_btn.grid(row = 4, column = 1)
+        
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        bottom_label = Label(self)
+        bottom_label.grid(row = 5, column = 0, columnspan = 4, sticky = "EWS", ipady = 0)
+        
+        bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
+        bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
+
+        back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.MAIN_MENU_SCREEN, None))
+        back_btn.grid(row = 0, column = 0, sticky = "NWS")
+
+    def continue_command(self):
+        '''Respond to the user pressing the button'''
 
         # Write user's ticket information to an external file
         with open("orders.txt", "a") as file:
             file.write(f"\nName: {app.user.name}\n")
             file.write(f"Email: {app.user.email}\n")
             file.write(f"{app.user.display_tickets()}\n")
-
-    def continue_command(self):
-        '''Respond to the user pressing the button'''
 
         # Ask the user whether they want to make another order from a message box.
         response = messagebox.askquestion("Confirmation", "Would you like to make another order?")
