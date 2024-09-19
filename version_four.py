@@ -1,4 +1,4 @@
-# Date: 19/09/2024
+# Date: 20/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -190,15 +190,16 @@ class App(Tk):
     def show_frame(self, frame_index, data_to_pass):
         '''Switch to the specified frame'''
         # The frame_index is where it is specified which screen/frame the program is wishing
-        # to switch to, which is done by passing one of the class constants.
+        # to switch to, which is done by passing one of the class constants to this method.
         # The data_to_pass is where any data that must be passed to the new frame is put,
-        # so that the new frame can access it. For most cases, if there is no data, this will just be set as None.
+        # so that the new frame can access it. For most cases, there is no such data, so this parameter will take the value of: None
     
         # Check whether the screen the program is trying to go to is one that
         # has 'restrictions'/conditions that must be met for the program to go to it
         # (e.g. the user must not have 0 tickets if they want to go to the remove ticket screen).
-        # If so, check whether the program is able to go to that screen, and return None if it cannot.
-        # Otherwise, the program will continue executing below.
+        # If the program is trying to go to such a screen, check whether the program is able to go to 
+        # that screen, and return None if it cannot. Otherwise (if the program can go to the screen),
+        # the program will continue executing below.
 
         # The program checks which screen has been specified by seeing if the frame_index corresponds to
         # one of the constants defined in the App class.
@@ -223,15 +224,15 @@ class App(Tk):
         if self.current_frame:
             self.current_frame.destroy()
 
-        # Get the value in the dictionary (the screen class) and store it in a new object
+        # Get the value in the dictionary (which is the class of the new screen) and store it in a new object
         # so that it can be instantiated. This is necessary because the dictionary only stores
-        # the class references, which cannot be instantiated directly.
+        # the class references for each screen, which cannot be instantiated directly.
         FrameClass = self.screen_dictionary.get(frame_index)
 
-        # If the program is switching to either of the account creation screens, then the process to follow
-        # is slighty different because it may be required for a user's name or email to be passed through.
+        # If the program is switching to a screen that may need data passed to it, then the process to follow here
+        # is slighty different because it may be required for some information to be passed via the data_to_pass argument.
         # Regardless of whether this is the case, current_frame will be set equal to the class for the specified
-        # screen, and then be instantiated.
+        # screen (FrameClass), and then be instantiated.
         if frame_index == App.ACCOUNT_CREATION_SCREEN or frame_index == App.ACCOUNT_CREATION_SCREEN_TWO:
             # Check if there is any data to pass to the screen. If there is,
             # then it will be the user's name and email address, so pass them as so.
@@ -240,8 +241,13 @@ class App(Tk):
                 self.current_frame = FrameClass(self, data_to_pass[0], data_to_pass[1])
             else:
                 self.current_frame = FrameClass(self, None, None)
+
+        # For the second booking flights screen, the flight code of the flight the user selected needs
+        # to be passed, which is what is done here.
         elif frame_index == App.BOOK_FLIGHTS_SCREEN_TWO:
             self.current_frame = FrameClass(self, data_to_pass)
+
+        # If there is no data that must be passed to the new screen, instantiate the object as normal.
         else:
             # Set the current frame to be the object for the specified screen, and instantiate it.
             self.current_frame = FrameClass(self)
@@ -265,7 +271,7 @@ class App(Tk):
         '''Farewell the user and quit the program'''
 
         # Display a farewell message and quit the program with quit().
-        messagebox.showinfo("Farewell", "Have a nice day!")
+        messagebox.showinfo("Farewell", "Have a nice trip!")
         quit()
 
     def get_flights(self):
@@ -306,11 +312,13 @@ class App(Tk):
         # Return the list of the flights
         return all_flights
 
+# Class for the main login screen that the user is brought to when first opening the program.
 class LoginScreen(Frame):
     def __init__(self, master):
+        '''Class constructor method'''
         super().__init__(master)
 
-        # Set the background colour
+        # Set the background colour of the screen.
         self.configure(background = MAIN_BG_COLOUR)
 
         # Configure the rows and columns to be used in this frame.
@@ -321,7 +329,7 @@ class LoginScreen(Frame):
         self.rowconfigure(2, weight=2, uniform='a')
         self.rowconfigure((3, 4, 5), weight=1, uniform='a')
 
-        # Main image which is to be placed at the top of the screen
+        # Main image which is to be placed at the top of the screen.
         # Used pady = 5 so that there is some space around this image, and that
         # it does not touch the top of the window
         main_image = ImageTk.PhotoImage(Image.open("menu_image.jpg"))
@@ -329,15 +337,19 @@ class LoginScreen(Frame):
         main_image_label.image = main_image
         main_image_label.grid(row = 0, column = 1, pady = 5)
 
-        # Main header text
+        # Create the main header text label and use the grid method to put it on the screen.
+        # The background colour is set to be consistent with the rest of the screen.
         header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
         header_lbl.grid(row=1, column=0, sticky="NESW", columnspan=3)
 
-        # Subtext
+        # Create the Subtext label and use the grid method to put it on the screen.
+        # The background colour is set to be consistent with the rest of the screen.
         subtext_lbl = Label(self, text="What would you like to do?", font=("Arial", 13, "bold"), background = MAIN_BG_COLOUR)
         subtext_lbl.grid(row=2, column=1, sticky="NSWE")
 
-        # Frame which contains the two main buttons (Login and Create Account)
+        # Frame which contains the two main buttons (Login and Create Account).
+        # This is used so that it is easier to position the buttons on the screen, as they can be treated
+        # as one single object on the main screen, which makes it easier to position them.
         # Set the background to MAIN_BG_COLOUR so that this frame has the same
         # background colour as everything else (so that the user cannot see the presence of this frame,
         # and they just see the buttons)
@@ -353,37 +365,51 @@ class LoginScreen(Frame):
         btn_frame.columnconfigure(1, weight = 1, uniform = 'b')
         btn_frame.rowconfigure(0, weight = 1, uniform = 'b')
 
-        # Place the login screen button in the button frame
+        # Login screen button which goes in the button frame created above, and that
+        # takes the user to the screen to login with their account when clicked.
+        # Put on the screen using the grid method.
         login_screen_btn = Button(btn_frame, text="Login", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_LOGIN_SCREEN, None))
         login_screen_btn.grid(row=0, column=0, sticky = "E")
 
-        # Place the create account button in the button frame
+        # Create account button which goes in the button frame created above, and that
+        # takes the user to the screen to create an account when clicked.
+        # Put on the screen using the grid method.
         create_account_btn = Button(btn_frame, text="Create Account", width = 15, font = ("bold"), command = lambda: app.show_frame(App.ACCOUNT_CREATION_SCREEN, None))
         create_account_btn.grid(row=0, column=2, sticky = "W")
 
-        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons.
+        # However, in this screen, there is nowhere to go 'back' to, so there is no need for
+        # a 'Back' button.
         bottom_label = Label(self)
         bottom_label.grid(row = 5, column = 0, columnspan = 3, sticky = "EWS", ipady = 10)
 
 class AccountLoginScreen(Frame):
     def __init__(self, master):
+        '''Class constructor method'''
         super().__init__(master)
 
-        # Try to load the json accounts file, and if
-        # it does not exist, then create it, and then
-        # read from the file.
+        # Try to load the json accounts file, and if it does not exist,
+        # then create it, and then read from it.
 
         try:
             with open("accounts.json", "r") as f:
+                # If reading from the file is successful (i.e. it exists in the
+                # same directory the program was run in), then use the .load()
+                # method to parse the accounts data contained.
                 self.accounts = json.load(f)
         except:
+            # If reading from the file is unsuccessful (i.e. it does NOT exists in the
+            # same directory the program was run in), then create the file and write to
+            # it the information necessary for it to be used to store user accounts.
             with open("accounts.json", "w") as f:
                 json.dump({"accounts": []}, f, indent = 4)
 
+            # Read from the file that has just been created, by using the .load()
+            # method to parse the contents of the file.
             with open("accounts.json", "r") as f:
                 self.accounts = json.load(f)
 
-        # Set the background colour
+        # Set the background colour of the screen.
         self.configure(background = MAIN_BG_COLOUR)
 
         # Configure the rows and columns to be used in this frame.
@@ -392,49 +418,70 @@ class AccountLoginScreen(Frame):
         self.rowconfigure(0, weight=2, uniform='a')
         self.rowconfigure((1, 2, 3, 4, 5, 6), weight=1, uniform='a')
 
-        # Main header text
+        # Create the main header text label and use the grid method to put it on the screen.
+        # The background colour is set to be consistent with the rest of the screen.
         header_lbl = Label(self, text="Welcome to the Flight Booking App!", font=("Arial", 20, "bold"), background = MAIN_BG_COLOUR)
         header_lbl.grid(row=0, column=0, sticky="NEWS", columnspan=3)
 
-        # Label and entry box for user's email address
+        # Create a label to tell the user to enter their email, and put it on the screen with the
+        # grid method.
         email_lbl = Label(self, text="Please enter your email", font=("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         email_lbl.grid(row=1, column=1, sticky="WENS")
 
+        # Create an entry box on the screen for the user to enter their email address,
+        # which is positioned below the label using the grid method.
         self.email_entry = Entry(self)
         self.email_entry.grid(row=2, column=1, sticky="WE")
 
-        # Label and entry box for user's password
+        # Create a label to tell the user to enter their password, and put it on the screen with the
+        # grid method.
         password_lbl = Label(self, text="Please enter your password", font=("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         password_lbl.grid(row=3, column=1, sticky="WENS")
 
+        # Create an entry box on the screen for the user to enter their password,
+        # which is positioned below the label using the grid method.
         self.password_entry = Entry(self, show = "*")
         self.password_entry.grid(row=4, column=1, sticky="WE")
 
         # Used to toggle on/off the password. This is because,
         # if the user clicks the view password button, the program will check whether this variable
-        # is True/False and use this to determine whether it should change to show a * character or not.
+        # is True/False, and then use this to determine whether it should change the entry box to show a "*"" character or not.
         self.password_showing = False
 
+        # Button that the user will use to show/hide their password, which is place on the screen
+        # to the right of the passowrd entry box using the grid method.
         view_password_btn = Button(self, text = "View", font = ("Arial", 9, "bold"), command = lambda: self.toggle_password())
         view_password_btn.grid(row = 4, column = 2, sticky = "W", padx = 10)
 
-        # Button for when the user has finished entering information
+        # Button that the user will click when they have entered all their information and want to login.
+        # Put on the screen using the grid method.
         login_btn = Button(self, text="Continue", width = 15, font = ("bold"), command=self.user_login)
         login_btn.grid(row=5, column=1)
 
-        # Label which goes at the bottom of each screen to store things like 'Back' buttons
+        # Label which goes at the bottom of each screen to store things like 'Back' buttons.
+        # In this screen, the user can go 'back' to the main menu, so there will be a 'Back' button
+        # in this label.
         bottom_label = Label(self)
         bottom_label.grid(row = 6, column = 0, columnspan = 3, sticky = "EWS", ipady = 0)
 
+        # Configure the row/column in the bottom label.
         bottom_label.rowconfigure(0, weight = 1, uniform = 'b')
         bottom_label.columnconfigure(0, weight = 1, uniform = 'b')
 
+        # Back button for the user to go back to the main menu screen when clicked.
+        # Placed inside the bottom label using the grid method.
         back_btn = Button(bottom_label, text = "Back", font = ("Arial", 9, "bold"), command = lambda:app.show_frame(App.LOGIN_SCREEN, None))
         back_btn.grid(row = 0, column = 0, sticky = "NWS")
 
     def toggle_password(self):
         '''Toggle the user's password from visible to non-visible and vice versa'''
 
+        # Check whether the password_showing attribute is True/False.
+        # If it is True, then it means that the user's password is currently
+        # showing on the screen, and so change the entry box to display the text
+        # as "*" characters. Otherwise, the user's password is not showing on the screen,
+        # so change the password entry box so that it doesn't show "*" characters.
+        # Also modify the password_showing attribute once the entry box has been modified.
         if self.password_showing:
             self.password_entry.configure(show = "*")
             self.password_showing = False
@@ -444,10 +491,13 @@ class AccountLoginScreen(Frame):
 
     def user_login(self):
         '''Manage the user login part of the program'''
+
+        # Get the email and password the user has entered in the entry boxes,
+        # and store them each in their own variable.
         user_email = self.email_entry.get()
         user_password = self.password_entry.get()
 
-        # Start by checking that the user entered an email and password. If not, display a message and return None
+        # Start by checking that the user entered an email and a password. If not, display a message and return None
         # to exit the user_login() method (this will bring the user back to the login screen).
         if len(user_email) == 0 or len(user_password) == 0:
             messagebox.showinfo("Error", "Please enter your email and/or password.")
