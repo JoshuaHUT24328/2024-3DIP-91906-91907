@@ -1331,7 +1331,7 @@ class FinishOrderScreen(Frame):
         self.rowconfigure(2, weight = 6, uniform = 'a')
         self.rowconfigure((3, 4, 5), weight = 1, uniform = 'a')
 
-        header_text_lbl = Label(self, text = "Book a Flight", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
+        header_text_lbl = Label(self, text = "Finish Order", font=("Arial", 18, "bold"), background = MAIN_BG_COLOUR)
         header_text_lbl.grid(row = 0, column = 0, sticky = "NEWS", columnspan = 4)
 
         # Label to display the user's name and email
