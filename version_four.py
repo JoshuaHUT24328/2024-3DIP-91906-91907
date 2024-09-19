@@ -812,9 +812,24 @@ class AccountCreationScreenTwo(Frame):
         '''Write the user's account information to a file'''
 
         # Open the accounts file to update it.
-        with open("accounts.json") as f:
-            data = json.load(f)
+        try:
+            with open("accounts.json", "r") as f:
+                # If reading from the file is successful (i.e. it exists in the
+                # same directory the program was run in), then use the .load()
+                # method to parse the accounts data contained.
+                data = json.load(f)
+        except:
+            # If reading from the file is unsuccessful (i.e. it does NOT exists in the
+            # same directory the program was run in), then create the file and write to
+            # it the information necessary for it to be used to store user accounts.
+            with open("accounts.json", "w") as f:
+                json.dump({"accounts": []}, f, indent = 4)
 
+            # Read from the file that has just been created, by using the .load()
+            # method to parse the contents of the file.
+            with open("accounts.json", "r") as f:
+                data = json.load(f)
+        
         # Add the account information to the data dictionary.
         data["accounts"].append({"name": user_name, "email": user_email, "password": user_password})
 
