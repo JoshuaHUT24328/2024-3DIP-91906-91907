@@ -369,9 +369,19 @@ class AccountLoginScreen(Frame):
     def __init__(self, master):
         super().__init__(master)
 
-        # Load the json accounts file
-        with open("accounts.json", "r") as f:
-            self.accounts = json.load(f)
+        # Try to load the json accounts file, and if
+        # it does not exist, then create it, and then
+        # read from the file.
+
+        try:
+            with open("accounts.json", "r") as f:
+                self.accounts = json.load(f)
+        except:
+            with open("accounts.json", "w") as f:
+                json.dump({"accounts": []}, f, indent = 4)
+
+            with open("accounts.json", "r") as f:
+                self.accounts = json.load(f)
 
         # Set the background colour
         self.configure(background = MAIN_BG_COLOUR)
