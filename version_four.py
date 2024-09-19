@@ -332,7 +332,7 @@ class LoginScreen(Frame):
         # Main image which is to be placed at the top of the screen.
         # Used pady = 5 so that there is some space around this image, and that
         # it does not touch the top of the window
-        main_image = ImageTk.PhotoImage(Image.open("menu_image.jpg"))
+        main_image = ImageTk.PhotoImage(Image.open("images/first_screen_image.jpg"))
         main_image_label = Label(self, bg="#ffffff", image=main_image)
         main_image_label.image = main_image
         main_image_label.grid(row = 0, column = 1, pady = 5)
@@ -844,7 +844,7 @@ class MainMenuScreen(Frame):
         # Main image which is to be placed at the top of the screen
         # Used pady = 5 so that there is some space around this image, and that
         # it does not touch the top of the window
-        main_image = ImageTk.PhotoImage(Image.open("Picture1.jpg"))
+        main_image = ImageTk.PhotoImage(Image.open("images/main_menu_image.jpg"))
         main_image_label = Label(self, bg="#ffffff", image=main_image)
         main_image_label.image = main_image
         main_image_label.grid(row = 0, column = 1, pady = 5)
