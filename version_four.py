@@ -1,4 +1,4 @@
-# Date: 20/09/2024
+# Date: 21/09/2024
 # Author: Joshua Hutchings
 # Version: 4
 # Purpose: Create a program that allows the user to book a plane flight
@@ -764,7 +764,7 @@ class AccountCreationScreenTwo(Frame):
         # and setting password_contains_number to True if/when a number is found.
         password_contains_number = False
         for character in user_password_one:
-            if character.isnumeric:
+            if character.isnumeric():
                 password_contains_number = True
 
         # If password_contains_number is not True, then there were no numbers found in the user's password.
