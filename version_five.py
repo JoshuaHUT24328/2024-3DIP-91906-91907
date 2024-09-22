@@ -275,8 +275,12 @@ class App(Tk):
         # Message box to take the user's input
         response = messagebox.askquestion("Confirmation", "Are you sure you would like to cancel your order and quit the program?")
         if response == "yes":
-            # If the user wants to quit, farewell them.
-            self.farewell_user()
+            # If the user wants to quit, farewell them. However, don't
+            # call the farewell_user() method, since that will tell the
+            # user to "Have a nice trip!", but they are not going on a trip
+            # if they are cancelling their order.
+            messagebox.showinfo("Farewell", "Have a nice day!")
+            quit()
         else:
             # If the user does not want to quit, return None to exit the function (and go back to the main menu).
             return None
