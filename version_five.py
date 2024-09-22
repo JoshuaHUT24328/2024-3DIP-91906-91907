@@ -693,6 +693,31 @@ class AccountCreationScreen(Frame):
             messagebox.showinfo("Error", "Your email does not have any full stops. Please enter a valid email address.")
             return None
         
+        # Check to see if there is already an existing account with the same email address as
+        # the one that the user entered.
+        try:
+            with open("accounts.json", "r") as f:
+                # If reading from the file is successful (i.e. it exists in the
+                # same directory the program was run in), then use the .load()
+                # method to parse the accounts data contained.
+                data = json.load(f)
+
+                # Iterate through each account in the accounts.json file
+                # and compare the user's email address with the email address of
+                # each account from the file.
+                for account in data["accounts"]:
+                    # If the user's email address matches the email address of an
+                    # account in the file, tell the user that there is already an account
+                    # with their email address, and return None to exit the method.
+                    if user_email == account["email"]:
+                        messagebox.showinfo("Error", "There is already an account that exists with your email address.")
+                        return None
+        except:
+            # If the program is unable to open the accounts file, then it means
+            # that it does not exist, and so there cannot be another account already exiting
+            # with the same email. Thus, the program can simply move on.
+            pass
+        
         # Switch to the next frame, passing both the user's name and email address
         # as data_to_pass.
         app.show_frame(App.ACCOUNT_CREATION_SCREEN_TWO, [user_name, user_email])
