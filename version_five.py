@@ -1588,7 +1588,7 @@ class FinishOrderScreen(Frame):
 
         # Label to display the total price of the user's order, which is calculated
         # from the calculate_total_price() method.
-        total_price_lbl = Label(self, text = f"Total Price: ${app.user.calculate_total_price()}", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
+        total_price_lbl = Label(self, text = f"Total Price: ${app.user.calculate_total_price():.2f}", font = ("Arial", 12, "bold"), background = MAIN_BG_COLOUR)
         total_price_lbl.grid(row = 3, column = 1)
 
         # Button for when the user wants to move on, either to quit the program, or to make another order.
