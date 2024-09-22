@@ -135,6 +135,12 @@ class User:
             output_str += f"Total: ${self.calculate_total_price():.2f}"
 
             return output_str
+        
+    def reset_tickets(self):
+        '''Reset all of the user's tickets if they want to make a new order whilst staying signed in'''
+
+        # Simply set the tickes method equal to an empty list to effectively reset it.
+        self.tickets = []
 
 # Class to manage the program and the GUI, such as the different screens, etc.
 class App(Tk):
@@ -1637,10 +1643,21 @@ class FinishOrderScreen(Frame):
 
         # Ask the user whether they want to make another order from a message box.
         response = messagebox.askquestion("Confirmation", "Would you like to make another order?")
+
+        # If the user wants to make another order, ask them if they want to use a different account.
         if response == "yes":
-            # If the user wants to make another order, take them to the original login screen
-            # with the show_frame() method.
-            app.show_frame(App.LOGIN_SCREEN, None)
+            change_account = messagebox.askquestion("Confirmation", "Would you like to use a different account?")
+            
+            # If the user wants to use a different account,take them to 
+            # the original login screen with the show_frame() method.
+            if change_account == "yes":
+                app.show_frame(App.LOGIN_SCREEN, None)
+
+            # If the user wants to use the same account, reset their tickets using the
+            # reset_tickets() method, and take them to the Main menu screen using the show_frame() method.
+            else:
+                app.user.reset_tickets()
+                app.show_frame(App.MAIN_MENU_SCREEN, None)
         else:
             # If the user does not want to make another order, farewell them.
             app.farewell_user()
