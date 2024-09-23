@@ -1,4 +1,4 @@
-# Date: 22/09/2024
+# Date: 23/09/2024
 # Author: Joshua Hutchings
 # Version: 5
 # Purpose: Create a program that allows the user to book a plane flight
@@ -1693,6 +1693,49 @@ class FinishOrderScreen(Frame):
 
     def send_email(self, email_receiver):
         '''Send the user an email of their order'''
+
+        # Validate the email the user has entered
+        if len(email_receiver) == 0:
+            messagebox.showinfo("Error", "Please enter an email address.")
+            return None
+        
+        # Used to help validate user input, by becoming True if
+        # the user has entered a valid email address.
+        user_entered_valid_email = False
+
+        # Iterate through each character in user's email address to check that there exists an '@'
+        # symbol. Given that alphanumeric characters such as numbers, symbols, etc, are allowed in an email
+        # address, characters that are not allowed in a name, it becomes more difficult to validate user input
+        # for email addresses. However, ALL email addresses must have an @ symbol, so an email address that
+        # does not must be invalid.
+        for character in email_receiver:
+            if character == '@':
+                user_entered_valid_email = True
+                break
+
+        # If the user entered an invalid email, tell them to enter a valid email address,
+        # and return None to exit the function.
+        if user_entered_valid_email == False:
+            messagebox.showinfo("Error", "Your email does not have an '@' symbol. Please enter a valid email address.")
+            return None
+
+        # Now check that the user has a full stop in their email address.
+        # Repeat the same process as before of iterating through each character in their
+        # email address, though this time check for any full stop characters.
+        user_entered_valid_email = False
+        for character in email_receiver:
+            if character == '.':
+                user_entered_valid_email = True
+                break
+
+        # If the user does not have any full stops in their email address, tell them to
+        # enter a valid email and exit the function to bring them back to the login screen.
+        if user_entered_valid_email == False:
+            messagebox.showinfo("Error", "Your email does not have any full stops. Please enter a valid email address.")
+            return None
+        
+        # If the program makes it this far, then the email address entered must be valid.
+        # Thus, the program can send the email.
 
         # Details of the account that will send the user the
         # email.
