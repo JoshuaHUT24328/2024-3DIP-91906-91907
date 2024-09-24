@@ -1,4 +1,4 @@
-# Date: 23/09/2024
+# Date: 24/09/2024
 # Author: Joshua Hutchings
 # Version: 5
 # Purpose: Create a program that allows the user to book a plane flight
@@ -1846,7 +1846,7 @@ class FinishOrderScreen(Frame):
                 # If the user does not want the program to try and send the
                 # email again, set sending_email to False so that the while loop
                 # will stop executing (and the program won't try to send an email again).
-                if send_email_again != "Yes":
+                if send_email_again != "yes":
                     sending_email = False
 
         # Destroy the email confirmation window as the email
