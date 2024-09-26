@@ -1,0 +1,16 @@
+Here are the attributions for images used in this program.
+The attributions have been done in accordance with the Recommended practices for attribution listed here: https://wiki.creativecommons.org/wiki/Recommended_practices_for_attribution
+
+first_screen_image.jpg
+
+Title: Auckland International Airport.
+Author: https://www.flickr.com/photos/umedhairesha/
+Source: https://www.flickr.com/photos/umedhairesha/6756372125
+License: https://creativecommons.org/licenses/by-sa/2.0/
+
+main_menu_image.jpg
+
+Title: Passenger airplane. Landscape with big white airplane is flying in the sky over the clouds and sea at colorful sunset. Passenger aircraft is landing at dusk. Business trip. Commercial plane. Travel
+Author: https://www.shutterstock.com/g/Denis+Belitsky
+Source: https://www.shutterstock.com/image-photo/passenger-airplane-landscape-big-white-flying-707735803
+License: https://www.shutterstock.com/license?utm_campaign=webstatement&utm_medium=googleimages&utm_source=iptc
